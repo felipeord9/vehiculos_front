@@ -1,0 +1,8 @@
+.main-title {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.75rem; /* ~28px */
+  font-weight: 800;
+  color: #0f172a; /* Azul muy oscuro/gris neutro */
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
