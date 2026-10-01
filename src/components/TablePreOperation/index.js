@@ -12,7 +12,6 @@ import * as FaIcons from "react-icons/fa";
 import DocLavadosPDF from "../DocLavadosPDF";
 import { FaEdit } from "react-icons/fa";
 import FormControlLabel from '@mui/material/FormControlLabel';
-import { sendMailEnd } from "../../services/mailService";
 import { updateRecord } from "../../services/preOperationalService";
 import { sendEvidence } from "../../services/evidence";
 import Chulo from '../../assets/chulo-verde.png'
