@@ -192,8 +192,8 @@ export default function ModalUsers({
                   {agencies.length > 0 && agencies
                     ?.sort((a, b) => a.id - b.id)
                     ?.map((elem) => (
-                      <option id={elem.id} value={(elem.description)}>
-                        {elem.description}
+                      <option id={elem.id} value={(elem.rowId)}>
+                        {elem.rowId} - {elem.description}
                       </option>
                   ))}
                 </select>

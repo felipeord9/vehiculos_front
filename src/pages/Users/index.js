@@ -10,14 +10,15 @@ import { FaClipboardUser } from "react-icons/fa6";
 import AuthContext from "../../context/authContext";
 import { findAgencies } from "../../services/agencyService";
 import { findVehicles } from "../../services/vehicleService";
+import TableVehicles from "../../components/TableVehicles";
+import { findDrivers } from "../../services/driverService";
+import TableDrivers from "../../components/TableDrivers";
+import { useNavigate } from "react-router-dom";
 import useUser from "../../hooks/useUser";
 import { HiUserGroup } from "react-icons/hi";
 import * as Bs from "react-icons/bs";
 import * as Icons from 'lucide-react';
 import './styles.css'
-import TableVehicles from "../../components/TableVehicles";
-import { findDrivers } from "../../services/driverService";
-import TableDrivers from "../../components/TableDrivers";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -29,6 +30,7 @@ export default function Users() {
   const { isLogged, logout } = useUser();
   const { user } = useContext(AuthContext);
   const [agencies, setAgencies] = useState({});
+  const navigate = useNavigate();
 
   //constantes de vehiculos
   const [vehicles, setVehicles] = useState([]);
@@ -217,6 +219,7 @@ export default function Users() {
                     className="form-control form-control-sm w-100"
                     placeholder="Buscar usuario"
                     onChange={(e)=>searchUsers(e)}
+                    style={{textTransform: 'uppercase'}}
                   />
                   <button
                     title="Nuevo usuario"
@@ -262,13 +265,14 @@ export default function Users() {
                     className="form-control form-control-sm w-100"
                     placeholder="Buscar vehiculo por placa"
                     onChange={(e)=> searchVehicles(e)}
+                    style={{textTransform: 'uppercase'}}
                   />
                   <button
                     title="Nuevo usuario"
                     className="d-flex align-items-center text-nowrap btn btn-sm text-light gap-1" 
-                    style={{backgroundColor:'#f36d5e', color:'white', textTransform: 'uppercase'}}
-                    onClick={(e) => setShowModalVehicle(!showModalVehicle)}>
-                      Nuevo vehiculos
+                    style={{backgroundColor:'#f36d5e', color:'white'}}
+                    onClick={(e) => navigate('/vehicle')}>
+                      Nuevo vehiculo <FaTruck />
                   </button>
                 </div>
                 <TableVehicles vehicles={suggesVehicles} setShowModal={setShowModalVehicle} setSelectedVehicle={setSelectedVehicle} loading={loading}/>
@@ -307,13 +311,14 @@ export default function Users() {
                       className="form-control form-control-sm w-100"
                       placeholder="Buscar conductor por cédula o nombre"
                       onChange={(e)=> searchDrivers(e)}
+                      style={{textTransform: 'uppercase'}}
                     />
                     <button
                       title="Nuevo usuario"
                       className="d-flex align-items-center text-nowrap btn btn-sm btn-success text-light gap-1" 
-                      onClick={(e) => setShowModalDriver(!showModalDriver)}>
+                      onClick={(e) => navigate('/driver')}>
                         Nuevo Conductor
-                        <GoIcons.GoPersonAdd style={{width: 15, height: 15}} />
+                        <FaClipboardUser style={{width: 15, height: 15}} />
                     </button>
                   </div>
                   <TableDrivers drivers={suggesDrivers} setShowModal={setShowModalDriver} setSelectedDriver={setSelectedDriver} loading={loading}/>

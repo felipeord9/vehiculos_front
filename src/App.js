@@ -4,13 +4,14 @@ import Home from './pages/Home';
 import AdminPreoperation from './pages/AdminPreoperation';
 import Preoperational from './pages/Preoperational';
 import EditPreOperational from './pages/editPreOperational';
+import Vehicles from './pages/Vehicles';
+import Drivers from './pages/Drivers';
 
 import EditForm from './pages/editForm';
 import Users from "./pages/Users"
 import ChangePassword from './pages/ChangePassword';
 import SendRecoveryPassword from "./pages/SendRecoveryPassword"
 import RecoveryPassword from './pages/RecoveryPassword';
-import Drivers from './pages/Drivers';
 import Plates from './pages/Plates';
 import Page404 from "./pages/Page404"
 import Navbar from './components/Navbar';
@@ -35,6 +36,10 @@ function App() {
               <Route path='/admin/pre/operational' element={<PrivateRoute component={AdminPreoperation} />} />
               <Route path='/pre/operational' element={<PrivateRoute component={Preoperational} />} />
               <Route path='/pre/operational/:id' element={<PrivateRoute component={EditPreOperational} />} />
+              <Route path='/vehicle' element={<PrivateRoute component={Vehicles} />} />
+              <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
+              <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
+              <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
 
               {/* <Route path='/form' element={<PrivateRoute component={Form} />} />
               <Route path='/form/:id' element={<PrivateRoute component={Form} />} /> */}

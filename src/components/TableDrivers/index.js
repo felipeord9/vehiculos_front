@@ -4,11 +4,13 @@ import useAlert from '../../hooks/useAlert';
 import { useContext } from 'react';
 import useUser from '../../hooks/useUser';
 import AuthContext from '../../context/authContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function TableDrivers({ drivers, loading, setSelectedDriver, setShowModal }) {
   const { successAlert } = useAlert()
   const { user } = useContext(AuthContext);
   const { isLogged, logout } = useUser();
+  const navigate = useNavigate();
 
   const columns = [
     {
@@ -42,6 +44,7 @@ export default function TableDrivers({ drivers, loading, setSelectedDriver, setS
             <button title="Editar conductor" style={{backgroundColor: '#198754', color:'white'}} className='btn btn-sm' onClick={(e) => {
               setSelectedDriver(row)
               setShowModal(true)
+              navigate(`/driver/${row.id}`)
             }}>
               <FiIcons.FiEdit />
             </button>

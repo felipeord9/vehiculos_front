@@ -1,264 +1,444 @@
-import { useState, useEffect } from "react";
-import sweal from 'sweetalert'
-import * as Bs from "react-icons/bs";
-import * as Io from "react-icons/io";
-/* import ButtonBack from "../../components/ButtonBack"; */
-import ModalAddDrivers from "../../components/ModalAddDrivers";
-import { findDrivers , deleteDriver } from '../../services/driverService'
-import { config } from "../../config";
+import { useEffect, useState, useContext, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { createDriver, findBycedula, findDrivers, findOneDriver, updateDriver } from '../../services/driverService';
+import { sendMail, sendMail2, sendMailNews, sendMailNotCondition } from "../../services/mailService";
+import AuthContext from "../../context/authContext";
+import { findVehicles } from '../../services/vehicleService'
+import ComboBox from "../../components/ComboBox";
+import { sendEvidence, verificarArchivo } from "../../services/evidence";
+import InspectionTabs from "../../components/InspectionTabs";
 import { Modal } from "react-bootstrap";
-import * as GoIcons from "react-icons/go";
-import { FaTruck } from "react-icons/fa";
-import Conductor1 from "../../assets/conductor1.png";
-import Conductor2 from "../../assets/conductor2.png";
-import Conductor3 from "../../assets/conductor3.png";
-import Conductor4 from "../../assets/conductor4.png";
-import Conductor5 from "../../assets/conductor5.png";
-import Conductor6 from "../../assets/conductor6.png";
-import { FaUserEdit } from "react-icons/fa";
+import Icono from "../../assets/icon-vehiculos.png";
+import Chulo from '../../assets/chulo-verde.png'
+import { FaUserCheck } from "react-icons/fa";
+import { MdLocalHospital } from "react-icons/md";
+import { createRecord, deleteRecord } from "../../services/preOperationalService";
+import { BsHandThumbsDownFill, BsHandThumbsUpFill } from "react-icons/bs";
+import BinaryQuestionsForm from "../../components/BinaryQuestionsForm";
+import { findAgencies } from "../../services/agencyService";
+import FileUploadCard from "../../components/FileUploadCard";
+import { IoMdArrowRoundBack } from "react-icons/io";
+import { IoMdArrowRoundForward } from "react-icons/io";
+import { config } from "../../config";
+import { FaSave } from "react-icons/fa";
+import Webcam from "react-webcam";
+import Swal from "sweetalert2";
+import "./styles.css";
+import { use } from "react";
 
-function Drivers() {
-  const LIMIT = 0;
-  const OFFSET = 6;
-  const [drivers, setDrivers] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
-  const [openModalEdit, setOpenModalEdit] = useState(false);
-  const [openModalImg, setOpenModalImg] = useState(false);
-  const [selectedImg, setSelectedImg] = useState(null);
-  const [selectedDriver, setSelectedDriver] = useState(null);
-  const [pagination, setPagination] = useState({
-    limit: LIMIT,
-    offset: OFFSET,
+export default function Drivers() {
+  const { user, setUser } = useContext(AuthContext);
+  const { id } = useParams();
+  const [agencias, setAgencias] = useState({});
+  const [loading, setLoading] = useState(false);
+  const refCo = useRef();
+  const refType1 = useRef();
+  const refType2 = useState(null);
+  const navigate = useNavigate();
+  const colors = { primary: "#198754", border: "#dee2e6" }
+
+  const [search, setSearch] = useState({
+    id: "",
+    nombre: "",
+    type1: "",
+    vencimiento1: "",
+    type2: "",
+    vencimiento2:'',
+    co: '',
   });
 
-  useEffect(() => {
-    loadData()
-  }, []);
+  const [documents, setDocuments] = useState({
+    cedula: null,
+    licencia1: null,
+    licencia2: null,
+  });
 
-  const loadData = () => {
-    findDrivers().then(({data}) => {
-      setDrivers(data);
-      setSuggestions(data);
-    });
-  }
+  const formatDateForInput = (isoString) => {
+    if (!isoString) return "";
+    
+    // Extraemos únicamente año, mes y día de la cadena original
+    const dateOnly = isoString.split("T")[0]; // "2000-01-01"
+    return dateOnly;
+  };
 
-  const handlerFilter = (e) => {
-    const { value } = e.target;
-    const newValue = value.toLowerCase();
-    const filter = drivers.filter((elem) => {
-      if (
-        elem.rowId.includes(value) ||
-        elem.name.toLowerCase().includes(newValue)
-      ) {
-        return elem;
-      }
-    });
-    if (filter.length > 0) {
-      setSuggestions(filter);
-    } else {
-      setSuggestions(drivers);
+  useEffect(()=>{
+    if(id){
+      findOneDriver(id)
+      .then(({data})=>{
+        setSearch({
+          id: data.rowId || "",
+          nombre: data.name || "",
+          type1: data.typeLicense1 || "",
+          vencimiento1: formatDateForInput(data.fechaVencimiento1),
+          type2: data.typeLicense2 || "",
+          vencimiento2: formatDateForInput(data.fechaVencimiento2),
+          co: data.co || ""
+        })
+      })
     }
-    setPagination({
-      limit: LIMIT,
-      offset: OFFSET,
+    findAgencies().then(({data})=> setAgencias(data));
+  },[]);
+
+  const handlerChangeSearch = (e) => {
+    const { id, value } = e.target;
+    console.log(value);
+    setSearch({
+      ...search,
+      [id]: value,
     });
   };
 
-  const expandImg = (imgUrl) => {
-    setSelectedImg(imgUrl);
-    setOpenModalImg(!openModalImg);
+  const handleFileChange = (key, file) => {
+    setDocuments((prev) => ({ ...prev, [key]: file }));
   };
 
-  const handlerShowModalUpdate = (driver) => {
-    setSelectedDriver(driver)
-    setOpenModalEdit(!openModalEdit)
-  }
+  const handleRemoveFile = (key) => {
+    setDocuments((prev) => ({ ...prev, [key]: null }));
+  };
 
   //logica para saber si es celular
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-      const handleResize = () => {
-        setIsMobile(window.innerWidth <= 900); // Establecer a true si la ventana es menor o igual a 768px
-      };
-  
-      // Llama a handleResize al cargar y al cambiar el tamaño de la ventana
-      window.addEventListener('resize', handleResize);
-      handleResize(); // Llama a handleResize inicialmente para establecer el estado correcto
-  
-      // Elimina el event listener cuando el componente se desmonta
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }, []);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 900); // Establecer a true si la ventana es menor o igual a 768px
+    };
 
-  const stickers = [
-    Conductor1,     // tarjeta 1
-    Conductor2,      // tarjeta 2
-    Conductor3,       // tarjeta 3
-    Conductor4,     // tarjeta 4
-    Conductor5,       // tarjeta 5
-    Conductor6,      // tarjeta 6
-  ];
+    // Llama a handleResize al cargar y al cambiar el tamaño de la ventana
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Llama a handleResize inicialmente para establecer el estado correcto
+
+    // Elimina el event listener cuando el componente se desmonta
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const handleSaveDriver= (e) => {
+    e.preventDefault();
+    if(search.id && search.nombre &&
+      search.co && search.type1 &&
+      search.vencimiento1
+    ){
+      setLoading(true)
+      Swal.fire({
+        title: 'Subiendo información',
+        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading(); 
+        }
+      });
+      const body = {
+        rowId: search.id,
+        name: search.nombre,
+        typeLicense1: search.type1,
+        fechaVencimiento1: new Date(search.vencimiento1),
+        typeLicense2: search.type2,
+        fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
+        co: search.co,
+        createdAt: new Date(),
+        createdBy: user.username,
+      }
+      createDriver(body)
+      .then(({data})=>{
+        setLoading(false);
+        Swal.fire({
+          title: "¡Creación exitosa!",
+          text: "Se ha registrado la información satisfactoriamente.",
+          imageUrl: Chulo,
+          imageWidth: 100,
+          customClass: {
+            image: "mb-0 mt-3 pb-0",
+            title: "mt-1 pt-0",
+          },
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          setSearch({})
+          navigate('/administracion')
+        });
+      })
+    }else{
+      Swal.fire({
+        icon: 'warning',
+        title:'¡ATENCIÓN!',
+        text:'Para hacer el registro de un conductor nuevo debes llenar todos los cambios y especificar por lo menos 1 tipo de licencia de conducción con su respectiva fecha de vencimiento.',
+        showConfirmButton: true,
+        confirmButtonColor: 'green'
+      })
+    }
+  }
+
+  const handleUpdateDriver= (e) => {
+    e.preventDefault();
+    if(search.id && search.nombre &&
+      search.co && search.type1 &&
+      search.vencimiento1 && id
+    ){
+      setLoading(true)
+      Swal.fire({
+        title: 'Subiendo información',
+        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading(); 
+        }
+      });
+      const body = {
+        rowId: search.id,
+        name: search.nombre,
+        typeLicense1: search.type1,
+        fechaVencimiento1: new Date(search.vencimiento1),
+        typeLicense2: search.type2,
+        fechaVencimiento2: search.vencimiento2 ? new Date(search.vencimiento2) : '',
+        co: search.co,
+        updatedAt: new Date(),
+        updatedBy: user.username,
+      }
+      updateDriver(id, body)
+      .then(({data})=>{
+        setLoading(false);
+        Swal.fire({
+          title: "¡Actualización exitosa!",
+          text: "Se ha actualizado la información satisfactoriamente.",
+          imageUrl: Chulo,
+          imageWidth: 100,
+          customClass: {
+            image: "mb-0 mt-3 pb-0",
+            title: "mt-1 pt-0",
+          },
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          setSearch({})
+          navigate('/administracion')
+        });
+      })
+    }else{
+      Swal.fire({
+        icon: 'warning',
+        title:'¡ATENCIÓN!',
+        text:'Para hacer la actualización de un conductor nuevo debes llenar todos los cambios y especificar por lo menos 1 tipo de licencia de conducción con su respectiva fecha de vencimiento.',
+        showConfirmButton: true,
+        confirmButtonColor: 'green'
+      })
+    }
+  }
+
+  const refreshForm = () => {
+    Swal.fire({
+      title: "¿Está seguro?",
+      text: "Se descartará todo el proceso que lleva",
+      icon: "warning",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc3545",
+      showCancelButton: true,
+      cancelButtonText: "Cancelar",
+    }).then(({ isConfirmed }) => {
+      if (isConfirmed) {
+        setSearch({})
+        navigate('/administracion')
+      }
+    });
+  };
 
   return (
-    <div className="container d-flex flex-column w-100 py-3 mt-5" style={{backgroundColor:'white'}}>
-      <h1 className="fs-5 fw-bold m-0 w-100 d-flex justify-content-center align-items-center">Conductores</h1>
-      <div className={`d-flex ${!isMobile ? 'flex-row' : 'flex-column'} justify-content-between mt-2 gap-2`}>
-        <input
-          type="search"
-          className="form-control"
-          placeholder="Buscar por cédula o nombre"
-          onChange={handlerFilter}
-        />
-        <button
-          title="Nuevo usuario"
-          className="btn btn-primary"
-          onClick={(e) => setOpenModal(!openModal)}
-          style={{ whiteSpace: "nowrap" }}
-        >
-          Nuevo conductor
-          <FaTruck className="ms-1" style={{width: 15, height: 15}} />
-        </button>
-        <ModalAddDrivers openModal={openModal} setOpen={setOpenModal} loadData={loadData} />
-      </div>
-      <div className="row row-cols-sm-2 row-cols-lg-3 justify-content-start mt-2">
-        {suggestions
-          .slice(pagination.limit, pagination.offset)
-          .map((elem, index) => (
-            <div className="d-flex justify-content-center">
-              <div
-                className="card overflow-hidden my-1"
-                style={{ width: "18rem", height: "12.5rem" }}
-              >
-                <img
-                  src={
-                    elem?.photo
-                      ? `${config.apiImg}/${elem.photo}`
-                      : stickers[index % stickers.length]   // 👈 usa el sticker correspondiente
-                  }
-                  alt={`${elem.id}`}
-                  height={115}
+    <div
+      className={`${isMobile ? 'w-100 py-4 mt-4':'container py-2 mt-5'} d-flex flex-column w-100`}
+      style={{ fontSize: 10.5 }}
+    >
+      <div className={`bg-light rounded shadow-sm ${isMobile ? 'p-2 m-0' : 'p-3'} mb-3`}>
+        <div className="d-flex flex-column gap-1">
+          <h1 className="text-center fs-6 fw-bold text-success">
+            Formulario para {id ? 'actualizar' : 'agregar'} un Conductor
+          </h1>
+          <div className="mb-2" style={{fontSize: 12}}>
+            {/* informacion a diligenciar */}
+            <div className={`row row-cols-sm-2 ${isMobile && 'gap-2'}`}>
+              <div className={`${!isMobile && ''}`}>
+                <label className="mb-1">Número de identificación</label>
+                <input
+                  id="id"
+                  value={search.id}
+                  type="number"
+                  placeholder="Eje: 1XXXXXXXXX"
+                  className="form-control form-control-sm"
+                  onChange={(e)=> handlerChangeSearch(e)}
+                  style={{textTransform: 'uppercase'}}
+                  required
                 />
-                <div class="card-body d-flex flex-row justify-content-between align-items-center">
-                  <div className="d-flex flex-column" style={{fontSize: 12}}>
-                    <span className="text-body-tertiary">ID: {elem.rowId}</span>
-                    <h5 class="card-title overflow-hidden w-100 m-0" style={{fontSize: 14}}>
-                      {elem.name}
-                    </h5>
-                  </div>
-                  <div class="dropdown dropend">
-                    <button
-                      class="btn p-1"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <FaUserEdit style={{ width: 20 }} />
-                    </button>
-                    <ul class="dropdown-menu">
-                      <li>
-                        <button
-                          class="dropdown-item"
-                          onClick={(e) => handlerShowModalUpdate(elem)}
-                        >
-                          Editar
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          class="btn btn-danger dropdown-item text-danger"
-                          href="..."
-                          onClick={(e) => {
-                            sweal({
-                              title: "¿Está seguro que desea eliminar este conductor?",
-                              text: `${elem.rowId} - ${elem.name}`,
-                              icon: "warning",
-                              dangerMode: true,
-                              buttons: ["Cancelar", "Sí, estoy seguro"]
-                            }).then((res) => {
-                              if(res) {
-                                deleteDriver(elem.id)
-                                .then((data) => {
-                                  sweal({
-                                    title: "Conductor eliminado correctamente",
-                                    icon: "success",
-                                    timer: 3000
-                                  })
-                                  loadData()
-                                })
-                              }
-                            })
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
+              </div>
+              <div className={`${!isMobile && ''}`}>
+                <label className="mb-1">Nombre Completo</label>
+                <input
+                  id="nombre"
+                  value={search.nombre}
+                  type="text"
+                  placeholder="NOMBRES Y APELLIDOS"
+                  className="form-control form-control-sm"
+                  onChange={(e)=> handlerChangeSearch(e)}
+                  style={{textTransform: 'uppercase'}}
+                  required
+                />
+              </div>
+              <div className={`${!isMobile && ''}`}>
+                <label className="mt-2 mb-1">C.O.</label>
+                <div className={`d-flex align-items-center position-relative w-100`}>
+                  <select
+                    ref={refCo}
+                    id="co"
+                    className="form-select form-select-sm"
+                    value={search.co}
+                    onChange={(e)=>setSearch({...search, co: e.target.value})}
+                    required
+                  >
+                    <option value="" selected disabled>
+                      -- SELECCIONE UN C.O. --
+                    </option>
+                    {agencias.length > 0 && agencias
+                      ?.sort((a,b)=>a.id - b.id)
+                      ?.map((elem) => (
+                        <option key={elem.id} value={elem.rowId}>
+                          {elem.rowId} - {elem.description}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="mt-2 mb-1">Fecha Creación</label>
+                <div className={`d-flex align-items-center position-relative w-100`}>
+                  <input
+                    id="createdAt"
+                    type="date"
+                    value={new Date().toISOString().split("T")[0]}
+                    className="form-control form-control-sm"
+                    required
+                    disabled
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mt-2 mb-1">Tipo de licencia 1</label>
+                <select
+                  ref={refType1}
+                  id="type1"
+                  className="form-select form-select-sm"
+                  value={search.type1}
+                  onChange={(e)=>setSearch({...search, type1: e.target.value})}
+                  required
+                >
+                  <option value="" selected disabled>
+                    -- SELECCIONE UN TIPO DE LICENCIA --
+                  </option>
+                  <option value='A2'>A2</option>
+                  <option value='C1'>C1</option>
+                  <option value='C2'>C2</option>
+                </select>
+              </div>
+              <div>
+                <label className="mt-2 mb-1">fecha Vencimiento Licencia 1</label>
+                <div className={`d-flex align-items-center position-relative w-100`}>
+                  <input
+                    id="vencimiento1"
+                    type="date"
+                    className="form-control form-control-sm"
+                    value={search.vencimiento1}
+                    onChange={(e)=> handlerChangeSearch(e)}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mt-2 mb-1">Tipo de licencia 2</label>
+                <select
+                  ref={refType2}
+                  id="type2"
+                  className="form-select form-select-sm"
+                  value={search.type2}
+                  onChange={(e)=>setSearch({...search, type2: e.target.value})}
+                  required
+                >
+                  <option value="" selected disabled>
+                    -- SELECCIONE UN TIPO DE LICENCIA --
+                  </option>
+                  <option value='A2'>A2</option>
+                  <option value='C1'>C1</option>
+                  <option value='C2'>C2</option>
+                </select>
+              </div>
+              <div>
+                <label className="mt-2 mb-1">fecha Vencimiento Licencia 2</label>
+                <div className={`d-flex align-items-center position-relative w-100`}>
+                  <input
+                    id="vencimiento2"
+                    type="date"
+                    className="form-control form-control-sm"
+                    value={search.vencimiento2}
+                    onChange={(e)=> handlerChangeSearch(e)}
+                    required
+                  />
                 </div>
               </div>
             </div>
-          ))
-        }
-      </div>
-      <ModalAddDrivers
-        driver={selectedDriver}
-        setDriver={setSelectedDriver}
-        openModal={openModalEdit}
-        setOpen={setOpenModalEdit}
-        loadData={loadData}
-      />
-      <Modal
-        show={openModalImg}
-        onHide={() => setOpenModalImg(!openModalImg)}
-        className="d-block align-items-center"
-      >
-        <img
-          src={`${config.apiImg}/${selectedImg}`}
-          alt=""
-          className="rounded w-100 h-100"
-        />
-      </Modal>
-      <div
-        id="pagination"
-        className="d-flex flex-row justify-content-center align-items-center rounded gap-2 mt-3"
-      >
-        <Io.IoIosArrowBack
-          className="text-body-tertiary"
-          style={{ cursor: "pointer" }}
-          onClick={(e) => {
-            if (pagination.limit !== 0) {
-              setPagination({
-                limit: pagination.limit - OFFSET,
-                offset: pagination.offset - OFFSET,
-              });
-            }
-          }}
-        />
-        <div
-          className="text-body-tertiary text-center"
-          style={{ width: "10rem" }}
-        >
-          {`${pagination.limit + 1}-${pagination.offset} de ${
-            suggestions.length
-          }`}
+          </div>
+          <hr className="my-1" /> 
+          <h1 className="text-start fs-6 fw-bold text-success">
+            DOCUMENTOS OBLIGATORIOS
+          </h1>
+          <span 
+            className="form-label fw-semibold text-secondary mb-1 d-flex justify-content-center w-100 align-text-center"
+            style={{fontSize: 14}}
+          >Pronto estará disponible esta sesión</span>
+          {/* <div className="mb-2" style={{fontSize: 12}}>
+            <div className={`row row-cols-sm-3 ${isMobile && 'gap-2'}`}>
+              <FileUploadCard
+                label="Cédula de Ciudadanía"
+                description="PDF (Ambas caras)"
+                file={documents.cedula}
+                onFileSelect={(file) => handleFileChange('cedula', file)}
+                onRemoveFile={() => handleRemoveFile('cedula')}
+                colors={colors}
+              />
+
+              <FileUploadCard
+                label="Licencia de Tránsito 1"
+                description="PDF (Ambas caras)"
+                file={documents.licencia1}
+                onFileSelect={(file) => handleFileChange('licencia1', file)}
+                onRemoveFile={() => handleRemoveFile('licencia1')}
+                colors={colors}
+              />
+
+              <FileUploadCard
+                label="Licencia de Tránsito 2"
+                description="PDF (Ambas caras)"
+                file={documents.licencia2}
+                onFileSelect={(file) => handleFileChange('licencia2', file)}
+                onRemoveFile={() => handleRemoveFile('licencia2')}
+                colors={colors}
+              />
+            </div>
+          </div> */}
+          <div className="d-flex flex-row gap-3 pt-2 pb-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-danger fw-bold w-100"
+              onClick={refreshForm}
+            >
+              CANCELAR
+            </button>
+            <button
+              type="submit"
+              className="btn btn-sm btn-success fw-bold w-100"
+              onClick={(e) => id ? handleUpdateDriver(e) : handleSaveDriver(e)}
+            >
+              {id ? 'Actualizar' : 'Guardar'} 
+              <FaSave className="ms-1" />
+            </button>
+          </div>
         </div>
-        <Io.IoIosArrowForward
-          className="text-body-tertiary"
-          style={{ cursor: "pointer" }}
-          onClick={(e) => {
-            if (pagination.offset < suggestions.length) {
-              setPagination({
-                limit: pagination.limit + OFFSET,
-                offset: pagination.offset + OFFSET,
-              });
-            }
-          }}
-        />
       </div>
     </div>
-  );
+  )
 }
-
-export default Drivers;

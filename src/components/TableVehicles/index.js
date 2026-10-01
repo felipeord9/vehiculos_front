@@ -4,11 +4,13 @@ import useAlert from '../../hooks/useAlert';
 import { useContext } from 'react';
 import useUser from '../../hooks/useUser';
 import AuthContext from '../../context/authContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function TableVehicles({ vehicles, loading, setSelectedVehicle, setShowModal }) {
   const { successAlert } = useAlert()
   const { user } = useContext(AuthContext);
   const { isLogged, logout } = useUser();
+  const navigate = useNavigate();
 
   const columns = [
     {
@@ -42,6 +44,7 @@ export default function TableVehicles({ vehicles, loading, setSelectedVehicle, s
             <button title="Editar vehiculo" style={{backgroundColor: '#f36d5e', color:'white'}} className='btn btn-sm' onClick={(e) => {
               setSelectedVehicle(row)
               setShowModal(true)
+              navigate(`/vehicle/${row.id}`)
             }}>
               <FiIcons.FiEdit />
             </button>
