@@ -24,7 +24,6 @@ import { FaSave } from "react-icons/fa";
 import Webcam from "react-webcam";
 import Swal from "sweetalert2";
 import "./styles.css";
-import { use } from "react";
 
 export default function Drivers() {
   const { user, setUser } = useContext(AuthContext);
