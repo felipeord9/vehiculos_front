@@ -32,6 +32,16 @@ const findBycedula = async (cedula) => {
   return data
 }
 
+const findVehiclesByCo = async (co) => {
+  const token = JSON.parse(localStorage.getItem("token"))
+  const { data } = await axios.get(`${url}/agencia/${co}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  return data
+}
+
 const createVehicle = (body) => {
   const token = JSON.parse(localStorage.getItem("token"))
   return fetch(url, {
@@ -71,6 +81,7 @@ export {
   findVehicles,
   findOneVehicle,
   findBycedula,
+  findVehiclesByCo,
   createVehicle,
   updateVehicle,
   deleteVehicle 

@@ -1,9 +1,9 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { findBycedula, findDrivers } from '../../services/driverService';
+import { findBycedula, findDrivers, findDriversByCo } from '../../services/driverService';
 import { sendMail, sendMail2, sendMailNews, sendMailNotCondition } from "../../services/mailService";
 import AuthContext from "../../context/authContext";
-import { findVehicles } from '../../services/vehicleService'
+import { findVehicles, findVehiclesByCo } from '../../services/vehicleService'
 import ComboBox from "../../components/ComboBox";
 import { sendEvidence, verificarArchivo } from "../../services/evidence";
 import InspectionTabs from "../../components/InspectionTabs";
@@ -17,6 +17,7 @@ import { BsHandThumbsDownFill, BsHandThumbsUpFill } from "react-icons/bs";
 import BinaryQuestionsForm from "../../components/BinaryQuestionsForm";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { IoMdArrowRoundForward } from "react-icons/io";
+import useUser from "../../hooks/useUser";
 import { config } from "../../config";
 import { FaSave } from "react-icons/fa";
 import Webcam from "react-webcam";
@@ -25,6 +26,7 @@ import "./styles.css";
 
 export default function Preoperational() {
   const { user, setUser } = useContext(AuthContext);
+  const { isLogged, logout } = useUser();
   const [typeEvidence, setTypeEvidence] = useState(null);
   const [activeTab, setActiveTab] = useState(1);
   
@@ -52,8 +54,15 @@ export default function Preoperational() {
   const [tieneFalla, setTieneFalla] = useState('');
 
   useEffect(()=>{
-    findDrivers().then(({data}) => (setDrivers(data), setSuggestionsDriver(data)));
-    findVehicles().then(({data}) => (setPlates(data), setSuggestionsPlate(data)));
+    if(user.role === 'admin'){
+      findDrivers().then(({data}) => (setDrivers(data), setSuggestionsDriver(data)));
+      findVehicles().then(({data}) => (setPlates(data), setSuggestionsPlate(data)));
+    } else if(user.role === 'jefe' || user.role === 'usuario'){
+      findDriversByCo(user.co).then(({data}) => (setDrivers(data), setSuggestionsDriver(data)));
+      findVehiclesByCo(user.co).then(({data}) => (setPlates(data), setSuggestionsPlate(data)));
+    } else {
+      logout();
+    }
   },[])
 
   const [search, setSearch] = useState({

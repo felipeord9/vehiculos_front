@@ -42,7 +42,7 @@ export const NavBarData = (user) => [
     type: 'native',
     version: '1.0.0',
     active: true,
-    access: ['admin']
+    access: ['admin', 'jefe']
   },
   /* {
     title: "Nuevo servicio",

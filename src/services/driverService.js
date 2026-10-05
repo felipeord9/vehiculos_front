@@ -32,6 +32,16 @@ const findBycedula = async (cedula) => {
   return data
 }
 
+const findDriversByCo = async (co) => {
+  const token = JSON.parse(localStorage.getItem("token"))
+  const { data } = await axios.get(`${url}/agencia/${co}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  return data
+}
+
 const createDriver = (body) => {
   const token = JSON.parse(localStorage.getItem("token"))
   return fetch(url, {
@@ -71,6 +81,7 @@ export {
   findDrivers,
   findOneDriver,
   findBycedula,
+  findDriversByCo,
   createDriver,
   updateDriver,
   deleteDriver 

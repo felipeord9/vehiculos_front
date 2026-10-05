@@ -9,9 +9,9 @@ import { FaTruck } from "react-icons/fa";
 import { FaClipboardUser } from "react-icons/fa6";
 import AuthContext from "../../context/authContext";
 import { findAgencies } from "../../services/agencyService";
-import { findVehicles } from "../../services/vehicleService";
+import { findVehicles, findVehiclesByCo } from "../../services/vehicleService";
 import TableVehicles from "../../components/TableVehicles";
-import { findDrivers } from "../../services/driverService";
+import { findDrivers, findDriversByCo } from "../../services/driverService";
 import TableDrivers from "../../components/TableDrivers";
 import { useNavigate } from "react-router-dom";
 import useUser from "../../hooks/useUser";
@@ -69,25 +69,47 @@ export default function Users() {
   }
 
   const getAllVehicles = () => {
-    findVehicles()
+    if(user.role === 'admin'){
+      findVehicles()
+        .then(({ data }) => {
+          setVehicles(data)
+          setSuggesVehicles(data)
+        })
+        .catch((error) => {
+          console.log('error vehicles')
+        });
+    } else if(user.role === 'jefe' || user.role === 'usuario'){
+      findVehiclesByCo(user.co)
       .then(({ data }) => {
-        setVehicles(data)
-        setSuggesVehicles(data)
-      })
-      .catch((error) => {
-        console.log('error vehicles')
-      });
+          setVehicles(data)
+          setSuggesVehicles(data)
+        })
+        .catch((error) => {
+          console.log('error vehicles')
+        });
+    }
   }
 
   const getAllDrivers = () => {
-    findDrivers()
+    if(user.role === 'admin'){
+      findDrivers()
+        .then(({ data }) => {
+          setDrivers(data)
+          setSuggesDrivers(data)
+        })
+        .catch((error) => {
+          console.log('error drivers')
+        });
+    } else if(user.role === 'jefe' || user.role === 'usuario'){
+      findDriversByCo(user.co)
       .then(({ data }) => {
-        setDrivers(data)
-        setSuggesDrivers(data)
-      })
-      .catch((error) => {
-        console.log('error drivers')
-      });
+          setDrivers(data)
+          setSuggesDrivers(data)
+        })
+        .catch((error) => {
+          console.log('error drivers')
+        });
+    }
   }
 
   const searchUsers = (e) => {
@@ -176,7 +198,7 @@ export default function Users() {
 
   return (
     <>
-      {(isLogged && user.role === 'admin') &&
+      {(isLogged && (user.role === 'admin' || user.role === 'jefe')) &&
         <div className="d-flex flex-column container mt-5">
           <ModalUsers 
             user={selectedUser}
@@ -187,52 +209,54 @@ export default function Users() {
             agencies={agencies}
           />
           {/* usuarios */}
-          <div className="card mb-3 border-0 shadow-sm bg-light">
-            <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div>
-                <h5 className="fw-bold text-primary mb-1">
-                  <HiUserGroup className="me-2"/> Usuarios
-                </h5>
-              </div>
-              <div className="d-flex align-items-center gap-2">
-                <button
-                  className="btn btn-sm d-flex align-items-center gap-1"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseUsers"
-                  aria-expanded="true"
-                  aria-controls="collapseUsers"
-                  style={{ fontSize: 20 }}
-                >
-                  <IoIosArrowDown />
-                </button>
-              </div>
-            </div>
-            
-            {/* 👈 AGREGADA LA CLASE "show" AQUÍ PARA QUE ABRA POR DEFECTO */}
-            <div className="collapse show" id="collapseUsers">
-              <div className="card-body pt-0 d-flex flex-column w-100">
-                <div className={`d-flex ${isMobile ? 'flex-column' : 'flex-row'} justify-content-end mt-2 gap-3 mb-2`}>
-                  <input
-                    type="text"
-                    value={search}
-                    className="form-control form-control-sm w-100"
-                    placeholder="Buscar usuario"
-                    onChange={(e)=>searchUsers(e)}
-                    style={{textTransform: 'uppercase'}}
-                  />
+          {user.role === 'admin' &&
+            <div className="card mb-3 border-0 shadow-sm bg-light">
+              <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <h5 className="fw-bold text-primary mb-1">
+                    <HiUserGroup className="me-2"/> Usuarios
+                  </h5>
+                </div>
+                <div className="d-flex align-items-center gap-2">
                   <button
-                    title="Nuevo usuario"
-                    className="d-flex align-items-center text-nowrap btn btn-sm btn-primary text-light gap-1" 
-                    onClick={(e) => setShowModalUsers(!showModalUsers)}>
-                      Nuevo usuario
-                      <GoIcons.GoPersonAdd style={{width: 15, height: 15}} />
+                    className="btn btn-sm d-flex align-items-center gap-1"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseUsers"
+                    aria-expanded="true"
+                    aria-controls="collapseUsers"
+                    style={{ fontSize: 20 }}
+                  >
+                    <IoIosArrowDown />
                   </button>
                 </div>
-                <TableUsers users={suggestions} setShowModal={setShowModalUsers} setSelectedUser={setSelectedUser} loading={loading}/>
+              </div>
+              
+              {/* 👈 AGREGADA LA CLASE "show" AQUÍ PARA QUE ABRA POR DEFECTO */}
+              <div className="collapse show" id="collapseUsers">
+                <div className="card-body pt-0 d-flex flex-column w-100">
+                  <div className={`d-flex ${isMobile ? 'flex-column' : 'flex-row'} justify-content-end mt-2 gap-3 mb-2`}>
+                    <input
+                      type="text"
+                      value={search}
+                      className="form-control form-control-sm w-100"
+                      placeholder="Buscar usuario"
+                      onChange={(e)=>searchUsers(e)}
+                      style={{textTransform: 'uppercase'}}
+                    />
+                    <button
+                      title="Nuevo usuario"
+                      className="d-flex align-items-center text-nowrap btn btn-sm btn-primary text-light gap-1" 
+                      onClick={(e) => setShowModalUsers(!showModalUsers)}>
+                        Nuevo usuario
+                        <GoIcons.GoPersonAdd style={{width: 15, height: 15}} />
+                    </button>
+                  </div>
+                  <TableUsers users={suggestions} setShowModal={setShowModalUsers} setSelectedUser={setSelectedUser} loading={loading}/>
+                </div>
               </div>
             </div>
-          </div>
+          }
 
           {/* vehiculos */}
           <div className="card mb-3 border-0 shadow-sm bg-light">
@@ -256,7 +280,7 @@ export default function Users() {
                   </button>
               </div>
             </div>
-            <div className="collapse" id="collapseVehiculos">
+            <div className={`collapse ${user.role === 'jefe' && 'show'}`} id="collapseVehiculos">
               <div className="card-body pt-0 d-flex flex-column w-100">
                 <div className={`d-flex ${isMobile ? 'flex-column' : 'flex-row'} justify-content-end mt-2 gap-3 mb-2`}>
                   <input
