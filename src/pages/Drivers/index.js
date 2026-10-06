@@ -44,6 +44,7 @@ export default function Drivers() {
     type2: "",
     vencimiento2:'',
     co: '',
+    createdAt: '',
   });
 
   const [documents, setDocuments] = useState({
@@ -71,7 +72,8 @@ export default function Drivers() {
           vencimiento1: formatDateForInput(data.fechaVencimiento1),
           type2: data.typeLicense2 || "",
           vencimiento2: formatDateForInput(data.fechaVencimiento2),
-          co: data.co || ""
+          co: data.co || "",
+          createdAt: data.createdAt || '',
         })
       })
     }
@@ -304,19 +306,35 @@ export default function Drivers() {
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="mt-2 mb-1">Fecha Creación</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="createdAt"
-                    type="date"
-                    value={new Date().toISOString().split("T")[0]}
-                    className="form-control form-control-sm"
-                    required
-                    disabled
-                  />
+              {id ?
+                <div>
+                  <label className="mt-2 mb-1">Fecha Creación</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="createdAt"
+                      type="date"
+                      value={search?.createdAt && new Date(search?.createdAt).toISOString().split("T")[0]}
+                      className="form-control form-control-sm"
+                      required
+                      disabled
+                    />
+                  </div>
                 </div>
-              </div>
+                :
+                <div>
+                  <label className="mt-2 mb-1">Fecha Creación</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="createdAt"
+                      type="date"
+                      value={new Date().toISOString().split("T")[0]}
+                      className="form-control form-control-sm"
+                      required
+                      disabled
+                    />
+                  </div>
+                </div>
+              }
               <div>
                 <label className="mt-2 mb-1">Tipo de licencia 1</label>
                 <select

@@ -78,7 +78,7 @@ export default function Users() {
         .catch((error) => {
           console.log('error vehicles')
         });
-    } else if(user.role === 'jefe' || user.role === 'usuario'){
+    } else if(user.role === 'jefe'){
       findVehiclesByCo(user.co)
       .then(({ data }) => {
           setVehicles(data)
@@ -100,7 +100,7 @@ export default function Users() {
         .catch((error) => {
           console.log('error drivers')
         });
-    } else if(user.role === 'jefe' || user.role === 'usuario'){
+    } else if(user.role === 'jefe'){
       findDriversByCo(user.co)
       .then(({ data }) => {
           setDrivers(data)

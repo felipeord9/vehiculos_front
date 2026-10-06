@@ -23,7 +23,7 @@ export default function TableUsers({ users, loading, setSelectedUser, setShowMod
       name: "Nombre",
       selector: (row) => row.name,
       sortable: true,
-      width: 'auto'
+      width: '380px'
     },
     {
       id: "username",
@@ -44,7 +44,7 @@ export default function TableUsers({ users, loading, setSelectedUser, setShowMod
       name: "C.O.",
       selector: (row) => row.co,
       sortable: true,
-      width: 'auto'
+      width: '150px'
     },
     {
       id: "options",

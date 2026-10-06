@@ -50,6 +50,7 @@ export default function Vehicles() {
     invima: '',
     co: '',
     poliza:'',
+    createdAt: '',
   });
 
   const [documents, setDocuments] = useState({
@@ -85,6 +86,7 @@ export default function Vehicles() {
           invima: formatDateForInput(data.invima),
           co: data.co,
           poliza: formatDateForInput(data.poliza),
+          createdAt: data.createdAt || '',
         })
       })
     }
@@ -490,19 +492,35 @@ export default function Vehicles() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="mt-2 mb-1">Fecha Creación</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="createdAt"
-                    type="date"
-                    value={new Date().toISOString().split("T")[0]}
-                    className="form-control form-control-sm"
-                    required
-                    disabled
-                  />
+              {id ?
+                <div>
+                  <label className="mt-2 mb-1">Fecha Creación</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="createdAt"
+                      type="date"
+                      value={search?.createdAt && new Date(search?.createdAt).toISOString().split("T")[0]}
+                      className="form-control form-control-sm"
+                      required
+                      disabled
+                    />
+                  </div>
                 </div>
-              </div>
+                :
+                <div>
+                  <label className="mt-2 mb-1">Fecha Creación</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="createdAt"
+                      type="date"
+                      value={new Date().toISOString().split("T")[0]}
+                      className="form-control form-control-sm"
+                      required
+                      disabled
+                    />
+                  </div>
+                </div>
+              }
             </div>
           </div>
           <hr className="my-1" /> 

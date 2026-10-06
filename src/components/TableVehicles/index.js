@@ -40,7 +40,7 @@ export default function TableVehicles({ vehicles, loading, setSelectedVehicle, s
       center: true,
       cell: (row, index, column, id) => (
         <div className='d-flex gap-2 p-1'>
-          {(user.role === 'admin' && row.username !== 'admin') &&
+          {(user.role === 'admin' || user.role === 'jefe') &&
             <button title="Editar vehiculo" style={{backgroundColor: '#f36d5e', color:'white'}} className='btn btn-sm' onClick={(e) => {
               setSelectedVehicle(row)
               setShowModal(true)

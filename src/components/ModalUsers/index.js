@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
-import Swal from 'sweetalert2'
 import { createUser, updateUser } from "../../services/userService";
+import { FiEdit3 } from "react-icons/fi";
+import Swal from 'sweetalert2'
 
 export default function ModalUsers({
   user,
@@ -21,8 +22,10 @@ export default function ModalUsers({
     co: '',
   });
   const [error, setError] = useState('');
+  const [newPassword,setNewPassword] = useState(false)
   const [co, setCo] = useState('');
- 
+  const [nonePass,setNonePass] = useState(false);
+
   useEffect(() => {
     if(user) {
       setInfo({
@@ -31,6 +34,7 @@ export default function ModalUsers({
         name: user?.name,
         email: user?.email,
         role: user?.role,
+        co: user?.co,
       })
     }
   }, [user]);
@@ -66,23 +70,44 @@ export default function ModalUsers({
 
   const handleUpdateUser = (e) => {
     e.preventDefault();
-    updateUser(user.id, info)
-      .then((data) => {
-        cleanForm()
-        setShowModal(!showModal)
-        reloadInfo();
-        Swal.fire({
-          title: '¡Correcto!',
-          text: 'El usuario se ha actualizado correctamente',
-          icon: 'success',
-          showConfirmButton: false,
-          timer: 2500
-        })
+    if(info.rowId !== '', info.name !== '',
+      info.username !== '', info.role !== '',
+      info.co !== '', newPassword ? info?.password !== '' &&
+      info?.password?.length > 4 : info?.password?.length !==''
+    ){
+      Swal.fire({
+        title: '¿Está segur@ de querer editar este usuario?',
+        showDenyButton: true,
+        confirmButtonText: 'Confirmar',
+        confirmButtonColor: 'green',
+        denyButtonText: `Cancelar`,
+        denyButtonColor:'red',
+        icon:'question'
+      }).then((result)=>{
+        if(result.isConfirmed){
+          updateUser(user.id, info)
+            .then((data) => {
+              cleanForm()
+              setShowModal(!showModal)
+              reloadInfo();
+              Swal.fire({
+                title: '¡Correcto!',
+                text: 'El usuario se ha actualizado correctamente',
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 2500
+              })
+            })
+            .catch((error) => {
+              setError(error.response.data.errors.original.detail)
+              setTimeout(() => setError(''), 2500)
+            });
+        }
       })
-      .catch((error) => {
-        setError(error.response.data.errors.original.detail)
-        setTimeout(() => setError(''), 2500)
-      });
+    }else{
+      setNonePass(true)
+      setTimeout(() => setNonePass(false), 3000) 
+    }
   };
 
   const cleanForm = () => {
@@ -95,6 +120,7 @@ export default function ModalUsers({
       role: "",
       co: '',
     })
+    setNewPassword(false)
   }
 
   return (
@@ -145,7 +171,7 @@ export default function ModalUsers({
                   required
                 />
               </div>
-              {!user && (
+              {!user ? (
                 <div>
                   <label className="fw-bold">Contraseña</label>
                   <input
@@ -159,6 +185,32 @@ export default function ModalUsers({
                     required
                   />
                 </div>
+              ):(
+                <div>
+                  <label className="fw-bold">Contraseña</label>
+                  <div className="d-flex flex-row">
+                    <input
+                      id="password"
+                      type="text"
+                      value={newPassword ? info?.password : '*************'}
+                      className="form-control form-control-sm me-3"
+                      onChange={handleChange}
+                      disabled={newPassword ? false : true}
+                      autoComplete="off"
+                      required
+                    />
+                    <button title="editar contraseña" className='btn btn-sm'
+                      style={{color:'white',backgroundColor:'black'}} onClick={(e) => {
+                        setNewPassword(true)
+                        setInfo({
+                          ...info,
+                          password:''
+                        })
+                      }}>
+                        <FiEdit3 />
+                    </button>
+                  </div>
+                </div> 
               )}
               <div>
                 <label className="fw-bold">Rol</label>
@@ -207,6 +259,7 @@ export default function ModalUsers({
                 {error}
               </span>
             </div>
+            {nonePass && <div className='text-danger text-center p-0 m-0 fw-bold'>Ingresa toda la información</div> }
             <div className="d-flex justify-content-end gap-2 mt-4">
               <Button type="submit" variant="success">
                 {user ? "Guardar Cambios" : "Guardar"}
