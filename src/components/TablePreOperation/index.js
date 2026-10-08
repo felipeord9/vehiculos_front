@@ -86,7 +86,7 @@ function TablePreOperation({ records, getAllRecords, loading }) {
       id: "C.O",
       name: "C.O.",
       selector: (row) => `${row.co}`,
-      width: "180px",
+      width: "110px",
     },
         {
       id: "health",
