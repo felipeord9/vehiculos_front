@@ -6,6 +6,8 @@ import Preoperational from './pages/Preoperational';
 import EditPreOperational from './pages/editPreOperational';
 import Vehicles from './pages/Vehicles';
 import Drivers from './pages/Drivers';
+import Pesv from './pages/Pesv';
+import Gps from './pages/Gps';
 
 import EditForm from './pages/editForm';
 import Users from "./pages/Users"
@@ -40,15 +42,18 @@ function App() {
               <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
               <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
               <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
+              <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
 
-              {/* <Route path='/form' element={<PrivateRoute component={Form} />} />
-              <Route path='/form/:id' element={<PrivateRoute component={Form} />} /> */}
-              <Route path='/drivers' element={<PrivateRoute component={Drivers} />} />
-              <Route path='/plates' element={<PrivateRoute component={Plates} />} />
+              {/* sesiones sin completar */}
+              <Route path='/gps' element={<PrivateRoute component={Home} />} />
+              <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
+              <Route path='/educacion' element={<PrivateRoute component={Home} />} />
+              <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
+    
               <Route path='/cambiar/contrasena' element={<PrivateRoute component={ChangePassword} />} />
               <Route path='/enviar/recuperacion' element={<SendRecoveryPassword/>} />
               <Route path='/recuperacion/contrasena/:token' element={<RecoveryPassword/>} />
-              <Route path='*' element={<Page404 />} />
+              <Route path='*' element={<Page404 />} /> 
             </Routes>
           </div>
         </Router>

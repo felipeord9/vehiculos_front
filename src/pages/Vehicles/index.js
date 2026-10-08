@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { findBycedula, findDrivers } from '../../services/driverService';
 import { sendMail, sendMail2, sendMailNews, sendMailNotCondition } from "../../services/mailService";
 import AuthContext from "../../context/authContext";
-import { createVehicle, findOneVehicle, findVehicles, updateVehicle } from '../../services/vehicleService'
+import { createVehicle, deleteVehicle, findOneVehicle, findVehicles, updateVehicle } from '../../services/vehicleService'
 import ComboBox from "../../components/ComboBox";
 import { sendEvidence, verificarArchivo } from "../../services/evidence";
 import InspectionTabs from "../../components/InspectionTabs";
@@ -24,6 +24,7 @@ import Swal from "sweetalert2";
 import "./styles.css";
 import { findAgencies } from "../../services/agencyService";
 import FileUploadCard from "../../components/FileUploadCard";
+import { filesVehicles } from "../../services/fileVehicleService";
 
 export default function Vehicles() {
   const { user, setUser } = useContext(AuthContext);
@@ -54,9 +55,15 @@ export default function Vehicles() {
   });
 
   const [documents, setDocuments] = useState({
-    cedula: null,
-    licencia1: null,
-    licencia2: null,
+    soat: null,
+    tecno: null,
+    fumigacion: null,
+    saneamientoCarnico: null,
+    saneamientoPesquero: null,
+    poliza: null,
+    invima: null,
+    limpiezaDesinfeccion: null,
+    tarjetaPropiedad: null,
   });
 
   const formatDateForInput = (isoString) => {
@@ -70,7 +77,7 @@ export default function Vehicles() {
   useEffect(()=>{
     if(id){
       findOneVehicle(id)
-      .then(({data})=>{
+      .then(async({data})=>{
         setSearch({
           plate: data.plate,
           typeVehicle: data.typeVehicle,
@@ -88,6 +95,17 @@ export default function Vehicles() {
           poliza: formatDateForInput(data.poliza),
           createdAt: data.createdAt || '',
         })
+        if(data.plate){
+          try {
+            const res = await fetch(`${config.apiUrl2}/files/vehicle/check/${data.plate}`);
+            if (res.ok) {
+              const existingDocs = await res.json();
+              setDocuments(existingDocs);
+            }
+          } catch (err) {
+            console.error("Error al cargar documentos existentes:", err);
+          }
+        }
       })
     }
     findAgencies().then(({data})=> setAgencias(data));
@@ -108,6 +126,15 @@ export default function Vehicles() {
 
   const handleRemoveFile = (key) => {
     setDocuments((prev) => ({ ...prev, [key]: null }));
+  };
+
+  // Función auxiliar para construir la URL de descarga si el archivo ya existe
+  const getDocUrl = (doc) => {
+    if (doc && doc.isExisting && search.plate) {
+      const relativePath = `VEHICULOS/${search.plate}/${doc.name}`;
+      return `${config.apiUrl2}/files/vehicle/download?filePath=${encodeURIComponent(relativePath)}`;
+    }
+    return null;
   };
 
   //logica para saber si es celular
@@ -135,7 +162,10 @@ export default function Vehicles() {
       search.tecno && search.kilometraje &&
       search.lastMaintenance && search.saneamientoCarnico &&
       search.saneamientoPesquero && search.fumigacion &&
-      search.invima && search.poliza
+      search.invima && search.poliza && documents.soat !== null &&
+      documents.tecno !== null && documents.fumigacion !== null && documents.saneamientoCarnico !== null &&
+      documents.saneamientoPesquero !== null && documents.poliza !== null && documents.invima !== null &&
+      documents.limpiezaDesinfeccion !== null && documents.tarjetaPropiedad !== null
     ){
       setLoading(true)
       Swal.fire({
@@ -167,27 +197,59 @@ export default function Vehicles() {
       }
       createVehicle(body)
       .then(({data})=>{
+        const formData = new FormData();
+        formData.append("placa", body.plate);
+        for (const fieldName in documents) {
+          if (documents[fieldName]) {
+            formData.append(fieldName, documents[fieldName]);
+          }
+        }
+        filesVehicles(formData)
+        .then(()=>{
+          setLoading(false);
+          Swal.fire({
+            title: "¡Creación exitosa!",
+            text: "Se ha registrado la información satisfactoriamente.",
+            imageUrl: Chulo,
+            imageWidth: 100,
+            customClass: {
+              image: "mb-0 mt-3 pb-0",
+              title: "mt-1 pt-0",
+            },
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            setSearch({})
+            setDocuments({})
+            navigate('/administracion')
+          });
+        })
+        .catch(()=>{
+          deleteVehicle(data.id)
+          setLoading(false);
+          Swal.fire({
+            icon:'warning',
+            title: "¡ERROR!",
+            text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+            confirmButtonText: "OK",
+            confirmButtonColor: 'red'
+          })
+        })
+      })
+      .catch(()=>{
         setLoading(false);
         Swal.fire({
-          title: "¡Creación exitosa!",
-          text: "Se ha registrado la información satisfactoriamente.",
-          imageUrl: Chulo,
-          imageWidth: 100,
-          customClass: {
-            image: "mb-0 mt-3 pb-0",
-            title: "mt-1 pt-0",
-          },
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          setSearch({})
-          navigate('/administracion')
-        });
+          icon:'warning',
+          title: "¡ERROR!",
+          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+          confirmButtonText: "OK",
+          confirmButtonColor: 'red'
+        })
       })
     }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
-        text:'Para hacer el registro de un vehículo nuevo debes llenar todos los cambios.',
+        text:'Para hacer el registro de un vehículo nuevo debes llenar todos los cambios y adjuntar los documentos.',
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
@@ -234,21 +296,61 @@ export default function Vehicles() {
       }
       updateVehicle(id, body)
       .then(({data})=>{
+        // 2. Comprobar si hay archivos NUEVOS para subir
+        const formData = new FormData();
+        formData.append('placa', search.plate);
+
+        let hasNewFiles = false;
+
+        Object.keys(documents).forEach((key) => {
+          const fileItem = documents[key];
+          // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
+          if (fileItem instanceof File) {
+            formData.append(key, fileItem);
+            hasNewFiles = true;
+          }
+        });
+        if (hasNewFiles) {
+          filesVehicles(formData)
+          .then(()=>{
+            setLoading(false);
+            Swal.fire({
+              title: "¡Actualización exitosa!",
+              text: "Se ha registrado la información satisfactoriamente.",
+              imageUrl: Chulo,
+              imageWidth: 100,
+              customClass: {
+                image: "mb-0 mt-3 pb-0",
+                title: "mt-1 pt-0",
+              },
+              confirmButtonText: "Aceptar",
+            }).then(() => {
+              setSearch({})
+              setDocuments({})
+              navigate('/administracion')
+            });
+          })
+          .catch(()=>{
+            setLoading(false);
+            Swal.fire({
+              icon:'warning',
+              title: "¡ERROR!",
+              text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+              confirmButtonText: "OK",
+              confirmButtonColor: 'red'
+            })
+          })
+        }
+      })
+      .catch(()=>{
         setLoading(false);
         Swal.fire({
-          title: "¡Actualización exitosa!",
-          text: "Se ha registrado la información satisfactoriamente.",
-          imageUrl: Chulo,
-          imageWidth: 100,
-          customClass: {
-            image: "mb-0 mt-3 pb-0",
-            title: "mt-1 pt-0",
-          },
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          setSearch({})
-          navigate('/administracion')
-        });
+          icon:'warning',
+          title: "¡ERROR!",
+          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+          confirmButtonText: "OK",
+          confirmButtonColor: 'red'
+        })
       })
     }else{
       Swal.fire({
@@ -527,40 +629,94 @@ export default function Vehicles() {
           <h1 className="text-start fs-6 fw-bold" style={{color:'#f36d5e'}}>
             DOCUMENTOS OBLIGATORIOS
           </h1>
-          <span 
+          {/* <span 
             className="form-label fw-semibold text-secondary mb-1 d-flex justify-content-center w-100 align-text-center"
             style={{fontSize: 14}}
-          >Pronto estará disponible esta sesión</span>
-          {/* <div className="mb-2" style={{fontSize: 12}}>
+          >Pronto estará disponible esta sesión</span> */}
+          <div className="mb-2" style={{fontSize: 12}}>
             <div className={`row row-cols-sm-3 ${isMobile && 'gap-2'}`}>
               <FileUploadCard
-                label="Cédula de Ciudadanía"
-                description="PDF (Ambas caras)"
-                file={documents.cedula}
-                onFileSelect={(file) => handleFileChange('cedula', file)}
-                onRemoveFile={() => handleRemoveFile('cedula')}
+                label="SOAT"
+                file={documents.soat}
+                onFileSelect={(file) => handleFileChange('soat', file)}
+                onRemoveFile={() => handleRemoveFile('soat')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.soat)}
               />
 
               <FileUploadCard
-                label="Licencia de Tránsito 1"
-                description="PDF (Ambas caras)"
-                file={documents.licencia1}
-                onFileSelect={(file) => handleFileChange('licencia1', file)}
-                onRemoveFile={() => handleRemoveFile('licencia1')}
+                label="TECNOMECÁNICA"
+                file={documents.tecno}
+                onFileSelect={(file) => handleFileChange('tecno', file)}
+                onRemoveFile={() => handleRemoveFile('tecno')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.tecno)}
               />
 
               <FileUploadCard
-                label="Licencia de Tránsito 2"
-                description="PDF (Ambas caras)"
-                file={documents.licencia2}
-                onFileSelect={(file) => handleFileChange('licencia2', file)}
-                onRemoveFile={() => handleRemoveFile('licencia2')}
+                label="FUMIGACIÓN"
+                file={documents.fumigacion}
+                onFileSelect={(file) => handleFileChange('fumigacion', file)}
+                onRemoveFile={() => handleRemoveFile('fumigacion')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.fumigacion)}
+              />
+
+              <FileUploadCard
+                label="SANEAMIENTO CARNICO"
+                file={documents.saneamientoCarnico}
+                onFileSelect={(file) => handleFileChange('saneamientoCarnico', file)}
+                onRemoveFile={() => handleRemoveFile('saneamientoCarnico')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.saneamientoCarnico)}
+              />
+
+              <FileUploadCard
+                label="SANEAMIENTO PESQUERO"
+                file={documents.saneamientoPesquero}
+                onFileSelect={(file) => handleFileChange('saneamientoPesquero', file)}
+                onRemoveFile={() => handleRemoveFile('saneamientoPesquero')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.saneamientoPesquero)}
+              />
+
+              <FileUploadCard
+                label="POLIZA"
+                file={documents.poliza}
+                onFileSelect={(file) => handleFileChange('poliza', file)}
+                onRemoveFile={() => handleRemoveFile('poliza')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.poliza)}
+              />
+
+              <FileUploadCard
+                label="INVIMA"
+                file={documents.invima}
+                onFileSelect={(file) => handleFileChange('invima', file)}
+                onRemoveFile={() => handleRemoveFile('invima')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.invima)}
+              />
+
+              <FileUploadCard
+                label="LIMPIEZA Y DESINFECCIÓN"
+                file={documents.limpiezaDesinfeccion}
+                onFileSelect={(file) => handleFileChange('limpiezaDesinfeccion', file)}
+                onRemoveFile={() => handleRemoveFile('limpiezaDesinfeccion')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.limpiezaDesinfeccion)}
+              />
+
+              <FileUploadCard
+                label="TARJETA DE PROPIEDAD"
+                file={documents.tarjetaPropiedad}
+                onFileSelect={(file) => handleFileChange('tarjetaPropiedad', file)}
+                onRemoveFile={() => handleRemoveFile('tarjetaPropiedad')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.tarjetaPropiedad)}
               />
             </div>
-          </div> */}
+          </div>
           <div className="d-flex flex-row gap-3 pt-2 pb-2">
             <button
               type="button"

@@ -191,7 +191,8 @@ export default function Home() {
           <div className="container-fluid p-2">
 
             {/* Grid de KPIs superiores */}
-            {isMobile ?
+            <h1 className="d-flex justify-content-center main-title mt-1 mb-3">Menú principal</h1>
+            {/* {isMobile ?
               <h1 className="d-flex justify-content-center main-title">Menú principal</h1>
               :
               <div className="row g-3 mb-4">
@@ -208,7 +209,7 @@ export default function Home() {
                   <KpiCard title="Base de datos" value={'Local'} subtitle={'PostgreSql'} />
                 </div>
               </div>
-            }
+            } */}
           
             {/* Grid de Accesos Directos a Módulos */}
             <div className="row g-3">

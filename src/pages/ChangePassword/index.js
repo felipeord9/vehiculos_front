@@ -31,7 +31,7 @@ export default function ChangePassword() {
           showConfirmButton: false,
           timer: 2500,
         }).then(() => {
-          navigate("/inicio");
+          navigate("/home");
         });
       })
       .catch((error) => {
@@ -68,6 +68,7 @@ export default function ChangePassword() {
         </h2>
         <form className="d-flex flex-column gap-2" onSubmit={handleSubmit}>
           <div>
+            <label className="text-secondary">Contraseña actual</label>
             <InputPassword
               label="Contraseña Actual"
               password={currentPassword}
@@ -75,6 +76,7 @@ export default function ChangePassword() {
             />
           </div>
           <div>
+            <label className="text-secondary">Nueva Contraseña</label>
             <InputPassword
               label="Nueva Contraseña"
               password={newPassword}
@@ -82,6 +84,7 @@ export default function ChangePassword() {
             />
           </div>
           <div>
+            <label className="text-secondary">Repetir Contraseña</label>
             <InputPassword
               label="Confirma la Nueva Contraseña"
               password={confirmNewPassword}

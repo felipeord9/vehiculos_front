@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createDriver, findBycedula, findDrivers, findOneDriver, updateDriver } from '../../services/driverService';
+import { createDriver, deleteDriver, findBycedula, findDrivers, findOneDriver, updateDriver } from '../../services/driverService';
 import { sendMail, sendMail2, sendMailNews, sendMailNotCondition } from "../../services/mailService";
 import AuthContext from "../../context/authContext";
 import { findVehicles } from '../../services/vehicleService'
@@ -8,8 +8,6 @@ import ComboBox from "../../components/ComboBox";
 import { sendEvidence, verificarArchivo } from "../../services/evidence";
 import InspectionTabs from "../../components/InspectionTabs";
 import { Modal } from "react-bootstrap";
-import Icono from "../../assets/icon-vehiculos.png";
-import Chulo from '../../assets/chulo-verde.png'
 import { FaUserCheck } from "react-icons/fa";
 import { MdLocalHospital } from "react-icons/md";
 import { createRecord, deleteRecord } from "../../services/preOperationalService";
@@ -19,6 +17,9 @@ import { findAgencies } from "../../services/agencyService";
 import FileUploadCard from "../../components/FileUploadCard";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { IoMdArrowRoundForward } from "react-icons/io";
+import { filesDrivers } from "../../services/fileDriverService";
+import Icono from "../../assets/icon-vehiculos.png";
+import Chulo from '../../assets/chulo-verde.png'
 import { config } from "../../config";
 import { FaSave } from "react-icons/fa";
 import Webcam from "react-webcam";
@@ -51,6 +52,7 @@ export default function Drivers() {
     cedula: null,
     licencia1: null,
     licencia2: null,
+    examenMedico: null,
   });
 
   const formatDateForInput = (isoString) => {
@@ -64,7 +66,7 @@ export default function Drivers() {
   useEffect(()=>{
     if(id){
       findOneDriver(id)
-      .then(({data})=>{
+      .then(async({data})=>{
         setSearch({
           id: data.rowId || "",
           nombre: data.name || "",
@@ -75,6 +77,17 @@ export default function Drivers() {
           co: data.co || "",
           createdAt: data.createdAt || '',
         })
+        if (data.rowId) {
+          try {
+            const res = await fetch(`${config.apiUrl2}/files/driver/check/${data.rowId}`);
+            if (res.ok) {
+              const existingDocs = await res.json();
+              setDocuments(existingDocs);
+            }
+          } catch (err) {
+            console.error("Error al cargar documentos existentes:", err);
+          }
+        }
       })
     }
     findAgencies().then(({data})=> setAgencias(data));
@@ -95,6 +108,15 @@ export default function Drivers() {
 
   const handleRemoveFile = (key) => {
     setDocuments((prev) => ({ ...prev, [key]: null }));
+  };
+
+  // Función auxiliar para construir la URL de descarga si el archivo ya existe
+  const getDocUrl = (doc) => {
+    if (doc && doc.isExisting && search.id) {
+      const relativePath = `CONDUCTORES/${search.id}/${doc.name}`;
+      return `${config.apiUrl2}/files/driver/download?filePath=${encodeURIComponent(relativePath)}`;
+    }
+    return null;
   };
 
   //logica para saber si es celular
@@ -118,7 +140,8 @@ export default function Drivers() {
     e.preventDefault();
     if(search.id && search.nombre &&
       search.co && search.type1 &&
-      search.vencimiento1
+      search.vencimiento1 && documents.cedula !== null &&
+      documents.licencia1 !== null && documents.examenMedico !== null
     ){
       setLoading(true)
       Swal.fire({
@@ -143,27 +166,59 @@ export default function Drivers() {
       }
       createDriver(body)
       .then(({data})=>{
+        const formData = new FormData();
+        for (const fieldName in documents) {
+          if (documents[fieldName]) {
+            formData.append(fieldName, documents[fieldName]);
+          }
+        }
+        formData.append("cedula", body.rowId);
+        filesDrivers(formData)
+        .then(()=>{
+          setLoading(false);
+          Swal.fire({
+            title: "¡Creación exitosa!",
+            text: "Se ha registrado la información satisfactoriamente.",
+            imageUrl: Chulo,
+            imageWidth: 100,
+            customClass: {
+              image: "mb-0 mt-3 pb-0",
+              title: "mt-1 pt-0",
+            },
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            setSearch({})
+            setDocuments({})
+            navigate('/administracion')
+          });
+        })
+        .catch(()=>{
+          deleteDriver(data.id)
+          setLoading(false);
+          Swal.fire({
+            icon:'warning',
+            title: "¡ERROR!",
+            text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+            confirmButtonText: "OK",
+            confirmButtonColor: 'red'
+          })
+        })
+      })
+      .catch(()=>{
         setLoading(false);
         Swal.fire({
-          title: "¡Creación exitosa!",
-          text: "Se ha registrado la información satisfactoriamente.",
-          imageUrl: Chulo,
-          imageWidth: 100,
-          customClass: {
-            image: "mb-0 mt-3 pb-0",
-            title: "mt-1 pt-0",
-          },
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          setSearch({})
-          navigate('/administracion')
-        });
+          icon:'warning',
+          title: "¡ERROR!",
+          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+          confirmButtonText: "OK",
+          confirmButtonColor: 'red'
+        })
       })
     }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
-        text:'Para hacer el registro de un conductor nuevo debes llenar todos los cambios y especificar por lo menos 1 tipo de licencia de conducción con su respectiva fecha de vencimiento.',
+        text:'Para hacer el registro de un conductor nuevo debes llenar todos los cambios, especificar por lo menos 1 tipo de licencia de conducción con su respectiva fecha de vencimiento y adjuntar los documentos.',
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
@@ -192,28 +247,68 @@ export default function Drivers() {
         typeLicense1: search.type1,
         fechaVencimiento1: new Date(search.vencimiento1),
         typeLicense2: search.type2,
-        fechaVencimiento2: search.vencimiento2 ? new Date(search.vencimiento2) : '',
+        fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
         co: search.co,
         updatedAt: new Date(),
         updatedBy: user.username,
       }
       updateDriver(id, body)
       .then(({data})=>{
+        // 2. Comprobar si hay archivos NUEVOS para subir
+        const formData = new FormData();
+        formData.append('cedula', search.id);
+
+        let hasNewFiles = false;
+
+        Object.keys(documents).forEach((key) => {
+          const fileItem = documents[key];
+          // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
+          if (fileItem instanceof File) {
+            formData.append(key, fileItem);
+            hasNewFiles = true;
+          }
+        });
+        if (hasNewFiles) {
+          filesDrivers(formData)
+          .then(()=>{
+            setLoading(false);
+            Swal.fire({
+              title: "¡Actualización exitosa!",
+              text: "Se ha actualizado la información satisfactoriamente.",
+              imageUrl: Chulo,
+              imageWidth: 100,
+              customClass: {
+                image: "mb-0 mt-3 pb-0",
+                title: "mt-1 pt-0",
+              },
+              confirmButtonText: "Aceptar",
+            }).then(() => {
+              setSearch({})
+              setDocuments({})
+              navigate('/administracion')
+            });
+          })
+          .catch(()=>{
+            setLoading(false);
+            Swal.fire({
+              icon:'warning',
+              title: "¡ERROR!",
+              text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+              confirmButtonText: "OK",
+              confirmButtonColor: 'red'
+            })
+          })
+        }
+      })
+      .catch(()=>{
         setLoading(false);
         Swal.fire({
-          title: "¡Actualización exitosa!",
-          text: "Se ha actualizado la información satisfactoriamente.",
-          imageUrl: Chulo,
-          imageWidth: 100,
-          customClass: {
-            image: "mb-0 mt-3 pb-0",
-            title: "mt-1 pt-0",
-          },
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          setSearch({})
-          navigate('/administracion')
-        });
+          icon:'warning',
+          title: "¡ERROR!",
+          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+          confirmButtonText: "OK",
+          confirmButtonColor: 'red'
+        })
       })
     }else{
       Swal.fire({
@@ -403,12 +498,12 @@ export default function Drivers() {
           <h1 className="text-start fs-6 fw-bold text-success">
             DOCUMENTOS OBLIGATORIOS
           </h1>
-          <span 
+          {/* <span 
             className="form-label fw-semibold text-secondary mb-1 d-flex justify-content-center w-100 align-text-center"
             style={{fontSize: 14}}
-          >Pronto estará disponible esta sesión</span>
-          {/* <div className="mb-2" style={{fontSize: 12}}>
-            <div className={`row row-cols-sm-3 ${isMobile && 'gap-2'}`}>
+          >Pronto estará disponible esta sesión</span> */}
+          <div className="mb-2" style={{fontSize: 12}}>
+            <div className={`row row-cols-sm-2 ${isMobile && 'gap-2'}`}>
               <FileUploadCard
                 label="Cédula de Ciudadanía"
                 description="PDF (Ambas caras)"
@@ -416,6 +511,7 @@ export default function Drivers() {
                 onFileSelect={(file) => handleFileChange('cedula', file)}
                 onRemoveFile={() => handleRemoveFile('cedula')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.cedula)}
               />
 
               <FileUploadCard
@@ -425,6 +521,7 @@ export default function Drivers() {
                 onFileSelect={(file) => handleFileChange('licencia1', file)}
                 onRemoveFile={() => handleRemoveFile('licencia1')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.licencia1)}
               />
 
               <FileUploadCard
@@ -434,9 +531,19 @@ export default function Drivers() {
                 onFileSelect={(file) => handleFileChange('licencia2', file)}
                 onRemoveFile={() => handleRemoveFile('licencia2')}
                 colors={colors}
+                downloadUrl={getDocUrl(documents.licencia2)}
+              />
+
+              <FileUploadCard
+                label="Examenes médicos"
+                file={documents.examenMedico}
+                onFileSelect={(file) => handleFileChange('examenMedico', file)}
+                onRemoveFile={() => handleRemoveFile('examenMedico')}
+                colors={colors}
+                downloadUrl={getDocUrl(documents.examenMedico)}
               />
             </div>
-          </div> */}
+          </div>
           <div className="d-flex flex-row gap-3 pt-2 pb-2">
             <button
               type="button"

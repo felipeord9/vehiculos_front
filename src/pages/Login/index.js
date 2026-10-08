@@ -110,12 +110,12 @@ export default function Login() {
               Usuario o contraseña incorrectos
             </div>
           )}
-          <Link
+          {/* <Link
             to="/enviar/recuperacion"
             className="text-primary text-center text-decoration-none mt-2 d-flex justify-content-center align-items-center"
           >
             ¿Olvidó su contraseña?
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>
