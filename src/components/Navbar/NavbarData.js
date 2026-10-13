@@ -47,7 +47,7 @@ export const NavBarData = (user) => [
     type: 'native',
     version: '1.0.0',
     active: true,
-    access: ['admin']
+    access: ['admin', 'jefe']
   },
   {
     id: 4,
@@ -57,7 +57,7 @@ export const NavBarData = (user) => [
     cName: "nav-text",
     description: 'Información en tiempo real',
     type: 'native',
-    version: '0.0.0',
+    version: '1.0.0',
     active: true,
     access: ['admin']
   },

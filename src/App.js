@@ -45,7 +45,7 @@ function App() {
               <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
 
               {/* sesiones sin completar */}
-              <Route path='/gps' element={<PrivateRoute component={Home} />} />
+              <Route path='/gps' element={<PrivateRoute component={Gps} />} />
               <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
               <Route path='/educacion' element={<PrivateRoute component={Home} />} />
               <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
