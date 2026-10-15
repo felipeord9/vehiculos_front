@@ -84,11 +84,11 @@ function TablePreOperation({ records, getAllRecords, loading }) {
     },
     {
       id: "C.O",
-      name: "C.O.",
-      selector: (row) => `${row.co}`,
-      width: "110px",
+      name: "Centro de Operación",
+      selector: (row) => `${row.agency.rowId} - ${row.agency.description}`,
+      width: "230px",
     },
-        {
+    {
       id: "health",
       name: "Estado de salud",
       center: true,

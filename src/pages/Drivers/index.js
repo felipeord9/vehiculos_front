@@ -138,83 +138,97 @@ export default function Drivers() {
 
   const handleSaveDriver= (e) => {
     e.preventDefault();
-    if(search.id && search.nombre &&
+    /* if(search.id && search.nombre &&
       search.co && search.type1 &&
       search.vencimiento1 && documents.cedula !== null &&
       documents.licencia1 !== null && documents.examenMedico !== null
-    ){
-      setLoading(true)
+    ){ */
       Swal.fire({
-        title: 'Subiendo información',
-        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading(); 
-        }
-      });
-      const body = {
-        rowId: search.id,
-        name: search.nombre,
-        typeLicense1: search.type1,
-        fechaVencimiento1: new Date(search.vencimiento1),
-        typeLicense2: search.type2,
-        fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
-        co: search.co,
-        createdAt: new Date(),
-        createdBy: user.username,
-      }
-      createDriver(body)
-      .then(({data})=>{
-        const formData = new FormData();
-        for (const fieldName in documents) {
-          if (documents[fieldName]) {
-            formData.append(fieldName, documents[fieldName]);
-          }
-        }
-        formData.append("cedula", body.rowId);
-        filesDrivers(formData)
-        .then(()=>{
-          setLoading(false);
+        icon:'question',
+        title: '¿Estás segur@?',
+        text: 'vamos a proceder a guardar la información sumistrada en nuestra base de datos',
+        showConfirmButton: true,
+        confirmButtonColor: 'green',
+        confirmButtonText: 'Aceptar',
+        showDenyButton: true,
+        denyButtonText: 'Cancelar',
+        denyButtonColor: 'red',
+      }).then(({ isConfirmed, isDenied }) =>{
+        if(isConfirmed){
+          setLoading(true)
           Swal.fire({
-            title: "¡Creación exitosa!",
-            text: "Se ha registrado la información satisfactoriamente.",
-            imageUrl: Chulo,
-            imageWidth: 100,
-            customClass: {
-              image: "mb-0 mt-3 pb-0",
-              title: "mt-1 pt-0",
-            },
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            setSearch({})
-            setDocuments({})
-            navigate('/administracion')
+            title: 'Subiendo información',
+            text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading(); 
+            }
           });
-        })
-        .catch(()=>{
-          deleteDriver(data.id)
-          setLoading(false);
-          Swal.fire({
-            icon:'warning',
-            title: "¡ERROR!",
-            text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
-            confirmButtonText: "OK",
-            confirmButtonColor: 'red'
+          const body = {
+            rowId: search.id,
+            name: search.nombre,
+            typeLicense1: search.type1,
+            fechaVencimiento1: (search.vencimiento1 !== '' && search.vencimiento1 !== null) ? new Date(search.vencimiento1) : null,
+            typeLicense2: search.type2,
+            fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
+            co: search.co,
+            createdAt: new Date(),
+            createdBy: user.username,
+          }
+          createDriver(body)
+          .then(({data})=>{
+            const formData = new FormData();
+            for (const fieldName in documents) {
+              if (documents[fieldName]) {
+                formData.append(fieldName, documents[fieldName]);
+              }
+            }
+            formData.append("cedula", body.rowId);
+            filesDrivers(formData)
+            .then(()=>{
+              setLoading(false);
+              Swal.fire({
+                title: "¡Creación exitosa!",
+                text: "Se ha registrado la información satisfactoriamente.",
+                imageUrl: Chulo,
+                imageWidth: 100,
+                customClass: {
+                  image: "mb-0 mt-3 pb-0",
+                  title: "mt-1 pt-0",
+                },
+                confirmButtonText: "Aceptar",
+              }).then(() => {
+                setSearch({})
+                setDocuments({})
+                navigate('/administracion')
+              });
+            })
+            .catch(()=>{
+              deleteDriver(data.id)
+              setLoading(false);
+              Swal.fire({
+                icon:'warning',
+                title: "¡ERROR!",
+                text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                confirmButtonText: "OK",
+                confirmButtonColor: 'red'
+              })
+            })
           })
-        })
+          .catch(()=>{
+            setLoading(false);
+            Swal.fire({
+              icon:'warning',
+              title: "¡ERROR!",
+              text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+              confirmButtonText: "OK",
+              confirmButtonColor: 'red'
+            })
+          })
+        }
       })
-      .catch(()=>{
-        setLoading(false);
-        Swal.fire({
-          icon:'warning',
-          title: "¡ERROR!",
-          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
-          confirmButtonText: "OK",
-          confirmButtonColor: 'red'
-        })
-      })
-    }else{
+    /* }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
@@ -222,95 +236,109 @@ export default function Drivers() {
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
-    }
+    } */
   }
 
   const handleUpdateDriver= (e) => {
     e.preventDefault();
-    if(search.id && search.nombre &&
+    /* if(search.id && search.nombre &&
       search.co && search.type1 &&
       search.vencimiento1 && id
-    ){
-      setLoading(true)
+    ){ */
       Swal.fire({
-        title: 'Subiendo información',
-        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading(); 
-        }
-      });
-      const body = {
-        rowId: search.id,
-        name: search.nombre,
-        typeLicense1: search.type1,
-        fechaVencimiento1: new Date(search.vencimiento1),
-        typeLicense2: search.type2,
-        fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
-        co: search.co,
-        updatedAt: new Date(),
-        updatedBy: user.username,
-      }
-      updateDriver(id, body)
-      .then(({data})=>{
-        // 2. Comprobar si hay archivos NUEVOS para subir
-        const formData = new FormData();
-        formData.append('cedula', search.id);
-
-        let hasNewFiles = false;
-
-        Object.keys(documents).forEach((key) => {
-          const fileItem = documents[key];
-          // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
-          if (fileItem instanceof File) {
-            formData.append(key, fileItem);
-            hasNewFiles = true;
+        icon:'question',
+        title: '¿Estás segur@?',
+        text: 'vamos a proceder a guardar la información sumistrada en nuestra base de datos',
+        showConfirmButton: true,
+        confirmButtonColor: 'green',
+        confirmButtonText: 'Aceptar',
+        showDenyButton: true,
+        denyButtonText: 'Cancelar',
+        denyButtonColor: 'red',
+      }).then(({ isConfirmed, isDenied }) =>{
+        if(isConfirmed){
+          setLoading(true)
+          Swal.fire({
+            title: 'Subiendo información',
+            text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading(); 
+            }
+          });
+          const body = {
+            rowId: search.id,
+            name: search.nombre,
+            typeLicense1: search.type1,
+            fechaVencimiento1: (search.vencimiento1 !== '' && search.vencimiento1 !== null) ? new Date(search.vencimiento1) : null,
+            typeLicense2: search.type2,
+            fechaVencimiento2: (search.vencimiento2 !== '' && search.vencimiento2 !== null) ? new Date(search.vencimiento2) : null,
+            co: search.co,
+            updatedAt: new Date(),
+            updatedBy: user.username,
           }
-        });
-        if (hasNewFiles) {
-          filesDrivers(formData)
-          .then(()=>{
-            setLoading(false);
-            Swal.fire({
-              title: "¡Actualización exitosa!",
-              text: "Se ha actualizado la información satisfactoriamente.",
-              imageUrl: Chulo,
-              imageWidth: 100,
-              customClass: {
-                image: "mb-0 mt-3 pb-0",
-                title: "mt-1 pt-0",
-              },
-              confirmButtonText: "Aceptar",
-            }).then(() => {
-              setSearch({})
-              setDocuments({})
-              navigate('/administracion')
+          updateDriver(id, body)
+          .then(({data})=>{
+            // 2. Comprobar si hay archivos NUEVOS para subir
+            const formData = new FormData();
+            formData.append('cedula', search.id);
+    
+            let hasNewFiles = false;
+    
+            Object.keys(documents).forEach((key) => {
+              const fileItem = documents[key];
+              // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
+              if (fileItem instanceof File) {
+                formData.append(key, fileItem);
+                hasNewFiles = true;
+              }
             });
+            if (hasNewFiles) {
+              filesDrivers(formData)
+              .then(()=>{
+                setLoading(false);
+                Swal.fire({
+                  title: "¡Actualización exitosa!",
+                  text: "Se ha actualizado la información satisfactoriamente.",
+                  imageUrl: Chulo,
+                  imageWidth: 100,
+                  customClass: {
+                    image: "mb-0 mt-3 pb-0",
+                    title: "mt-1 pt-0",
+                  },
+                  confirmButtonText: "Aceptar",
+                }).then(() => {
+                  setSearch({})
+                  setDocuments({})
+                  navigate('/administracion')
+                });
+              })
+              .catch(()=>{
+                setLoading(false);
+                Swal.fire({
+                  icon:'warning',
+                  title: "¡ERROR!",
+                  text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                  confirmButtonText: "OK",
+                  confirmButtonColor: 'red'
+                })
+              })
+            }
           })
           .catch(()=>{
             setLoading(false);
             Swal.fire({
               icon:'warning',
               title: "¡ERROR!",
-              text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+              text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
               confirmButtonText: "OK",
               confirmButtonColor: 'red'
             })
           })
         }
       })
-      .catch(()=>{
-        setLoading(false);
-        Swal.fire({
-          icon:'warning',
-          title: "¡ERROR!",
-          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
-          confirmButtonText: "OK",
-          confirmButtonColor: 'red'
-        })
-      })
-    }else{
+    /* }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
@@ -318,7 +346,7 @@ export default function Drivers() {
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
-    }
+    } */
   }
 
   const refreshForm = () => {
@@ -449,7 +477,7 @@ export default function Drivers() {
                 </select>
               </div>
               <div>
-                <label className="mt-2 mb-1">fecha Vencimiento Licencia 1</label>
+                <label className="mt-2 mb-1">Fecha Vencimiento Licencia 1</label>
                 <div className={`d-flex align-items-center position-relative w-100`}>
                   <input
                     id="vencimiento1"
@@ -480,7 +508,7 @@ export default function Drivers() {
                 </select>
               </div>
               <div>
-                <label className="mt-2 mb-1">fecha Vencimiento Licencia 2</label>
+                <label className="mt-2 mb-1">Fecha Vencimiento Licencia 2</label>
                 <div className={`d-flex align-items-center position-relative w-100`}>
                   <input
                     id="vencimiento2"

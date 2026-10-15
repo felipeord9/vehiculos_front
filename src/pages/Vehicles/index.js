@@ -156,7 +156,7 @@ export default function Vehicles() {
 
   const handleSaveVehicle= (e) => {
     e.preventDefault();
-    if(search.plate && search.typeVehicle &&
+    /* if(search.plate && search.typeVehicle &&
       search.co && search.brand &&
       search.chip && search.soat &&
       search.tecno && search.kilometraje &&
@@ -166,86 +166,100 @@ export default function Vehicles() {
       documents.tecno !== null && documents.fumigacion !== null && documents.saneamientoCarnico !== null &&
       documents.saneamientoPesquero !== null && documents.poliza !== null && documents.invima !== null &&
       documents.limpiezaDesinfeccion !== null && documents.tarjetaPropiedad !== null
-    ){
-      setLoading(true)
+    ){ */
       Swal.fire({
-        title: 'Subiendo información',
-        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading(); 
-        }
-      });
-      const body = {
-        plate: search.plate,
-        typeVehicle: search.typeVehicle,
-        co: search.co,
-        brand: search.brand,
-        chip: search.chip,
-        soat: new Date(search.soat),
-        tecno: new Date(search.tecno),
-        km: search.kilometraje,
-        lastMaintenance: new Date(search.lastMaintenance),
-        saneamientoCarnico: new Date(search.saneamientoCarnico),
-        saneamientoPesquero: new Date(search.saneamientoPesquero),
-        fumigacion: new Date(search.fumigacion),
-        poliza: new Date(search.poliza),
-        invima: new Date(search.invima),
-        createdAt: new Date(),
-        createdBy: user.username,
-      }
-      createVehicle(body)
-      .then(({data})=>{
-        const formData = new FormData();
-        formData.append("placa", body.plate);
-        for (const fieldName in documents) {
-          if (documents[fieldName]) {
-            formData.append(fieldName, documents[fieldName]);
-          }
-        }
-        filesVehicles(formData)
-        .then(()=>{
-          setLoading(false);
+        icon:'question',
+        title: '¿Estás segur@?',
+        text: 'vamos a proceder a guardar la información sumistrada en nuestra base de datos',
+        showConfirmButton: true,
+        confirmButtonColor: 'green',
+        confirmButtonText: 'Aceptar',
+        showDenyButton: true,
+        denyButtonText: 'Cancelar',
+        denyButtonColor: 'red',
+      }).then(({ isConfirmed, isDenied }) =>{
+        if(isConfirmed){
+          setLoading(true)
           Swal.fire({
-            title: "¡Creación exitosa!",
-            text: "Se ha registrado la información satisfactoriamente.",
-            imageUrl: Chulo,
-            imageWidth: 100,
-            customClass: {
-              image: "mb-0 mt-3 pb-0",
-              title: "mt-1 pt-0",
-            },
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            setSearch({})
-            setDocuments({})
-            navigate('/administracion')
+            title: 'Subiendo información',
+            text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading(); 
+            }
           });
-        })
-        .catch(()=>{
-          deleteVehicle(data.id)
-          setLoading(false);
-          Swal.fire({
-            icon:'warning',
-            title: "¡ERROR!",
-            text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
-            confirmButtonText: "OK",
-            confirmButtonColor: 'red'
+          const body = {
+            plate: search.plate,
+            typeVehicle: search.typeVehicle,
+            co: search.co,
+            brand: search.brand,
+            chip: search.chip,
+            soat: (search.soat !== '' && search.soat !== null) ? new Date(search.soat) : null,
+            tecno: (search.tecno !== '' && search.tecno !== null) ? new Date(search.tecno) : null,
+            km: search.kilometraje,
+            lastMaintenance: (search.lastMaintenance !== '' && search.lastMaintenance !== null) ? new Date(search.lastMaintenance) : null,
+            saneamientoCarnico: (search.saneamientoCarnico !== '' && search.saneamientoCarnico !== null) ? new Date(search.saneamientoCarnico) : null,
+            saneamientoPesquero: (search.saneamientoPesquero !== '' && search.saneamientoPesquero !== null) ? new Date(search.saneamientoPesquero) : null,
+            fumigacion: (search.fumigacion !== '' && search.fumigacion !== null) ? new Date(search.fumigacion) : null,
+            poliza: (search.poliza !== '' && search.poliza !== null) ? new Date(search.poliza) : null,
+            invima: (search.invima !== '' && search.invima !== null) ? new Date(search.invima) : null,
+            createdAt: new Date(),
+            createdBy: user.username,
+          }
+          createVehicle(body)
+          .then(({data})=>{
+            const formData = new FormData();
+            formData.append("placa", body.plate);
+            for (const fieldName in documents) {
+              if (documents[fieldName]) {
+                formData.append(fieldName, documents[fieldName]);
+              }
+            }
+            filesVehicles(formData)
+            .then(()=>{
+              setLoading(false);
+              Swal.fire({
+                title: "¡Creación exitosa!",
+                text: "Se ha registrado la información satisfactoriamente.",
+                imageUrl: Chulo,
+                imageWidth: 100,
+                customClass: {
+                  image: "mb-0 mt-3 pb-0",
+                  title: "mt-1 pt-0",
+                },
+                confirmButtonText: "Aceptar",
+              }).then(() => {
+                setSearch({})
+                setDocuments({})
+                navigate('/administracion')
+              });
+            })
+            .catch(()=>{
+              deleteVehicle(data.id)
+              setLoading(false);
+              Swal.fire({
+                icon:'warning',
+                title: "¡ERROR!",
+                text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                confirmButtonText: "OK",
+                confirmButtonColor: 'red'
+              })
+            })
           })
-        })
+          .catch(()=>{
+            setLoading(false);
+            Swal.fire({
+              icon:'warning',
+              title: "¡ERROR!",
+              text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
+              confirmButtonText: "OK",
+              confirmButtonColor: 'red'
+            })
+          })
+        }
       })
-      .catch(()=>{
-        setLoading(false);
-        Swal.fire({
-          icon:'warning',
-          title: "¡ERROR!",
-          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
-          confirmButtonText: "OK",
-          confirmButtonColor: 'red'
-        })
-      })
-    }else{
+    /* }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
@@ -253,106 +267,120 @@ export default function Vehicles() {
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
-    }
+    } */
   }
 
   const handleUpdateVehicle= (e) => {
     e.preventDefault();
-    if(search.plate && search.typeVehicle &&
+    /* if(search.plate && search.typeVehicle &&
       search.co && search.brand &&
       search.chip && search.soat &&
       search.tecno && search.kilometraje &&
       search.lastMaintenance && search.saneamientoCarnico &&
       search.saneamientoPesquero && search.fumigacion &&
       search.invima && search.poliza
-    ){
-      setLoading(true)
+    ){ */
       Swal.fire({
-        title: 'Subiendo información',
-        text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading(); 
-        }
-      });
-      const body = {
-        plate: search.plate,
-        typeVehicle: search.typeVehicle,
-        co: search.co,
-        brand: search.brand,
-        chip: search.chip,
-        soat: new Date(search.soat),
-        tecno: new Date(search.tecno),
-        km: search.kilometraje,
-        lastMaintenance: new Date(search.lastMaintenance),
-        saneamientoCarnico: new Date(search.saneamientoCarnico),
-        saneamientoPesquero: new Date(search.saneamientoPesquero),
-        fumigacion: new Date(search.fumigacion),
-        poliza: new Date(search.poliza),
-        invima: new Date(search.invima),
-        UpdatedAt: new Date(),
-        UpdatedBy: user.username,
-      }
-      updateVehicle(id, body)
-      .then(({data})=>{
-        // 2. Comprobar si hay archivos NUEVOS para subir
-        const formData = new FormData();
-        formData.append('placa', search.plate);
-
-        let hasNewFiles = false;
-
-        Object.keys(documents).forEach((key) => {
-          const fileItem = documents[key];
-          // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
-          if (fileItem instanceof File) {
-            formData.append(key, fileItem);
-            hasNewFiles = true;
+        icon:'question',
+        title: '¿Estás segur@?',
+        text: 'vamos a proceder a guardar la información sumistrada en nuestra base de datos',
+        showConfirmButton: true,
+        confirmButtonColor: 'green',
+        confirmButtonText: 'Aceptar',
+        showDenyButton: true,
+        denyButtonText: 'Cancelar',
+        denyButtonColor: 'red',
+      }).then(({ isConfirmed, isDenied }) =>{
+        if(isConfirmed){
+          setLoading(true)
+          Swal.fire({
+            title: 'Subiendo información',
+            text: `Por favor, espera mientras se guarda la información en nuestra base de datos...`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading(); 
+            }
+          });
+          const body = {
+            plate: search.plate,
+            typeVehicle: search.typeVehicle,
+            co: search.co,
+            brand: search.brand,
+            chip: search.chip,
+            soat: (search.soat !== '' && search.soat !== null) ? new Date(search.soat) : null,
+            tecno: (search.tecno !== '' && search.tecno !== null) ? new Date(search.tecno) : null,
+            km: search.kilometraje,
+            lastMaintenance: (search.lastMaintenance !== '' && search.lastMaintenance !== null) ? new Date(search.lastMaintenance) : null,
+            saneamientoCarnico: (search.saneamientoCarnico !== '' && search.saneamientoCarnico !== null) ? new Date(search.saneamientoCarnico) : null,
+            saneamientoPesquero: (search.saneamientoPesquero !== '' && search.saneamientoPesquero !== null) ? new Date(search.saneamientoPesquero) : null,
+            fumigacion: (search.fumigacion !== '' && search.fumigacion !== null) ? new Date(search.fumigacion) : null,
+            poliza: (search.poliza !== '' && search.poliza !== null) ? new Date(search.poliza) : null,
+            invima: (search.invima !== '' && search.invima !== null) ? new Date(search.invima) : null,
+            UpdatedAt: new Date(),
+            UpdatedBy: user.username,
           }
-        });
-        if (hasNewFiles) {
-          filesVehicles(formData)
-          .then(()=>{
-            setLoading(false);
-            Swal.fire({
-              title: "¡Actualización exitosa!",
-              text: "Se ha registrado la información satisfactoriamente.",
-              imageUrl: Chulo,
-              imageWidth: 100,
-              customClass: {
-                image: "mb-0 mt-3 pb-0",
-                title: "mt-1 pt-0",
-              },
-              confirmButtonText: "Aceptar",
-            }).then(() => {
-              setSearch({})
-              setDocuments({})
-              navigate('/administracion')
+          updateVehicle(id, body)
+          .then(({data})=>{
+            // 2. Comprobar si hay archivos NUEVOS para subir
+            const formData = new FormData();
+            formData.append('placa', search.plate);
+    
+            let hasNewFiles = false;
+    
+            Object.keys(documents).forEach((key) => {
+              const fileItem = documents[key];
+              // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
+              if (fileItem instanceof File) {
+                formData.append(key, fileItem);
+                hasNewFiles = true;
+              }
             });
+            if (hasNewFiles) {
+              filesVehicles(formData)
+              .then(()=>{
+                setLoading(false);
+                Swal.fire({
+                  title: "¡Actualización exitosa!",
+                  text: "Se ha registrado la información satisfactoriamente.",
+                  imageUrl: Chulo,
+                  imageWidth: 100,
+                  customClass: {
+                    image: "mb-0 mt-3 pb-0",
+                    title: "mt-1 pt-0",
+                  },
+                  confirmButtonText: "Aceptar",
+                }).then(() => {
+                  setSearch({})
+                  setDocuments({})
+                  navigate('/administracion')
+                });
+              })
+              .catch(()=>{
+                setLoading(false);
+                Swal.fire({
+                  icon:'warning',
+                  title: "¡ERROR!",
+                  text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                  confirmButtonText: "OK",
+                  confirmButtonColor: 'red'
+                })
+              })
+            }
           })
           .catch(()=>{
             setLoading(false);
             Swal.fire({
               icon:'warning',
               title: "¡ERROR!",
-              text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+              text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
               confirmButtonText: "OK",
               confirmButtonColor: 'red'
             })
           })
         }
       })
-      .catch(()=>{
-        setLoading(false);
-        Swal.fire({
-          icon:'warning',
-          title: "¡ERROR!",
-          text: "Ha ocurrido un error al momento de guardar la información. Intentalo mas tarde o comunicate con el área de sistemas.",
-          confirmButtonText: "OK",
-          confirmButtonColor: 'red'
-        })
-      })
-    }else{
+    /* }else{
       Swal.fire({
         icon: 'warning',
         title:'¡ATENCIÓN!',
@@ -360,7 +388,7 @@ export default function Vehicles() {
         showConfirmButton: true,
         confirmButtonColor: 'green'
       })
-    }
+    } */
   }
 
   const refreshForm = () => {
@@ -477,7 +505,7 @@ export default function Vehicles() {
                 </div>
               </div>
               <div>
-                <label className="mt-2 mb-1">fecha Vencimiento SOAT</label>
+                <label className="mt-2 mb-1">Fecha Vencimiento SOAT</label>
                 <div className={`d-flex align-items-center position-relative w-100`}>
                   <input
                     id="soat"
