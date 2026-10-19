@@ -178,15 +178,47 @@ export default function Drivers() {
           }
           createDriver(body)
           .then(({data})=>{
-            const formData = new FormData();
-            for (const fieldName in documents) {
-              if (documents[fieldName]) {
-                formData.append(fieldName, documents[fieldName]);
+            if(documents.cedula !== null || documents.examenMedico !== null ||
+              documents.licencia1 !== null || documents.licencia2 !== null
+            ){
+              const formData = new FormData();
+              for (const fieldName in documents) {
+                if (documents[fieldName]) {
+                  formData.append(fieldName, documents[fieldName]);
+                }
               }
-            }
-            formData.append("cedula", body.rowId);
-            filesDrivers(formData)
-            .then(()=>{
+              formData.append("cedula", body.rowId);
+              filesDrivers(formData)
+              .then(()=>{
+                setLoading(false);
+                Swal.fire({
+                  title: "¡Creación exitosa!",
+                  text: "Se ha registrado la información satisfactoriamente.",
+                  imageUrl: Chulo,
+                  imageWidth: 100,
+                  customClass: {
+                    image: "mb-0 mt-3 pb-0",
+                    title: "mt-1 pt-0",
+                  },
+                  confirmButtonText: "Aceptar",
+                }).then(() => {
+                  setSearch({})
+                  setDocuments({})
+                  navigate('/administracion')
+                });
+              })
+              .catch(()=>{
+                deleteDriver(data.id)
+                setLoading(false);
+                Swal.fire({
+                  icon:'warning',
+                  title: "¡ERROR!",
+                  text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                  confirmButtonText: "OK",
+                  confirmButtonColor: 'red'
+                })
+              })
+            }else{
               setLoading(false);
               Swal.fire({
                 title: "¡Creación exitosa!",
@@ -203,18 +235,7 @@ export default function Drivers() {
                 setDocuments({})
                 navigate('/administracion')
               });
-            })
-            .catch(()=>{
-              deleteDriver(data.id)
-              setLoading(false);
-              Swal.fire({
-                icon:'warning',
-                title: "¡ERROR!",
-                text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
-                confirmButtonText: "OK",
-                confirmButtonColor: 'red'
-              })
-            })
+            }
           })
           .catch(()=>{
             setLoading(false);
@@ -280,50 +301,71 @@ export default function Drivers() {
           }
           updateDriver(id, body)
           .then(({data})=>{
-            // 2. Comprobar si hay archivos NUEVOS para subir
-            const formData = new FormData();
-            formData.append('cedula', search.id);
-    
-            let hasNewFiles = false;
-    
-            Object.keys(documents).forEach((key) => {
-              const fileItem = documents[key];
-              // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
-              if (fileItem instanceof File) {
-                formData.append(key, fileItem);
-                hasNewFiles = true;
-              }
-            });
-            if (hasNewFiles) {
-              filesDrivers(formData)
-              .then(()=>{
-                setLoading(false);
-                Swal.fire({
-                  title: "¡Actualización exitosa!",
-                  text: "Se ha actualizado la información satisfactoriamente.",
-                  imageUrl: Chulo,
-                  imageWidth: 100,
-                  customClass: {
-                    image: "mb-0 mt-3 pb-0",
-                    title: "mt-1 pt-0",
-                  },
-                  confirmButtonText: "Aceptar",
-                }).then(() => {
-                  setSearch({})
-                  setDocuments({})
-                  navigate('/administracion')
-                });
-              })
-              .catch(()=>{
-                setLoading(false);
-                Swal.fire({
-                  icon:'warning',
-                  title: "¡ERROR!",
-                  text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
-                  confirmButtonText: "OK",
-                  confirmButtonColor: 'red'
+            if(documents.cedula !== null || documents.examenMedico !== null ||
+              documents.licencia1 !== null || documents.licencia2 !== null
+            ){
+              // 2. Comprobar si hay archivos NUEVOS para subir
+              const formData = new FormData();
+              formData.append('cedula', search.id);
+      
+              let hasNewFiles = false;
+      
+              Object.keys(documents).forEach((key) => {
+                const fileItem = documents[key];
+                // Solo adjuntamos los archivos que sean cargados localmente (instancias de File)
+                if (fileItem instanceof File) {
+                  formData.append(key, fileItem);
+                  hasNewFiles = true;
+                }
+              });
+              if (hasNewFiles) {
+                filesDrivers(formData)
+                .then(()=>{
+                  setLoading(false);
+                  Swal.fire({
+                    title: "¡Actualización exitosa!",
+                    text: "Se ha actualizado la información satisfactoriamente.",
+                    imageUrl: Chulo,
+                    imageWidth: 100,
+                    customClass: {
+                      image: "mb-0 mt-3 pb-0",
+                      title: "mt-1 pt-0",
+                    },
+                    confirmButtonText: "Aceptar",
+                  }).then(() => {
+                    setSearch({})
+                    setDocuments({})
+                    navigate('/administracion')
+                  });
                 })
-              })
+                .catch(()=>{
+                  setLoading(false);
+                  Swal.fire({
+                    icon:'warning',
+                    title: "¡ERROR!",
+                    text: "Ha ocurrido un error al momento de guardar los archivos adjuntos. Intentalo mas tarde o comunicate con el área de sistemas.",
+                    confirmButtonText: "OK",
+                    confirmButtonColor: 'red'
+                  })
+                })
+              }
+            }else{
+              setLoading(false);
+              Swal.fire({
+                title: "¡Actualización exitosa!",
+                text: "Se ha actualizado la información satisfactoriamente.",
+                imageUrl: Chulo,
+                imageWidth: 100,
+                customClass: {
+                  image: "mb-0 mt-3 pb-0",
+                  title: "mt-1 pt-0",
+                },
+                confirmButtonText: "Aceptar",
+              }).then(() => {
+                setSearch({})
+                setDocuments({})
+                navigate('/administracion')
+              });
             }
           })
           .catch(()=>{
