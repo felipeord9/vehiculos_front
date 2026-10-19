@@ -49,6 +49,14 @@ export default function ModalUsers({
 
   const handleCreateNewUser = (e) => {
     e.preventDefault();
+    const body = {
+      rowId: info.rowId,
+      username: info.username,
+      name: info.name.toUpperCase(),
+      password: info.password,
+      role: info.role,
+      co: info.co,
+    }
     createUser(info)
       .then((data) => {
         setShowModal(!showModal)
@@ -85,6 +93,14 @@ export default function ModalUsers({
         icon:'question'
       }).then((result)=>{
         if(result.isConfirmed){
+          const body = {
+            rowId: info.rowId,
+            username: info.username,
+            name: info.name.toUpperCase(),
+            password: info.password,
+            role: info.role,
+            co: info.co,
+          }
           updateUser(user.id, info)
             .then((data) => {
               cleanForm()

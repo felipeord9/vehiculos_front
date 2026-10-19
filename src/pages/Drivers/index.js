@@ -167,7 +167,7 @@ export default function Drivers() {
           });
           const body = {
             rowId: search.id,
-            name: search.nombre,
+            name: search.nombre ? search.nombre.toUpperCase() : null,
             typeLicense1: search.type1,
             fechaVencimiento1: (search.vencimiento1 !== '' && search.vencimiento1 !== null) ? new Date(search.vencimiento1) : null,
             typeLicense2: search.type2,
@@ -290,7 +290,7 @@ export default function Drivers() {
           });
           const body = {
             rowId: search.id,
-            name: search.nombre,
+            name: search.nombre ? search.nombre.toUpperCase() : null,
             typeLicense1: search.type1,
             fechaVencimiento1: (search.vencimiento1 !== '' && search.vencimiento1 !== null) ? new Date(search.vencimiento1) : null,
             typeLicense2: search.type2,

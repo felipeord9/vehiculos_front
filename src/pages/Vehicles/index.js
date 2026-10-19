@@ -190,11 +190,11 @@ export default function Vehicles() {
             }
           });
           const body = {
-            plate: search.plate,
+            plate: search.plate ? search.plate.toUpperCase() : null,
             typeVehicle: search.typeVehicle,
             co: search.co,
-            brand: search.brand,
-            chip: search.chip,
+            brand: search.brand ? search.brand.toUpperCase(): null,
+            chip: search.chip ? search.chip.toUpperCase() : null,
             soat: (search.soat !== '' && search.soat !== null) ? new Date(search.soat) : null,
             tecno: (search.tecno !== '' && search.tecno !== null) ? new Date(search.tecno) : null,
             km: search.kilometraje,
@@ -216,7 +216,7 @@ export default function Vehicles() {
               documents.tecno !== null
             ){
               const formData = new FormData();
-              formData.append("placa", body.plate);
+              formData.append("placa", body.plate.toUpperCase());
               for (const fieldName in documents) {
                 if (documents[fieldName]) {
                   formData.append(fieldName, documents[fieldName]);
@@ -327,11 +327,11 @@ export default function Vehicles() {
             }
           });
           const body = {
-            plate: search.plate,
+            plate: search.plate ? search.plate.toUpperCase() : null,
             typeVehicle: search.typeVehicle,
             co: search.co,
-            brand: search.brand,
-            chip: search.chip,
+            brand: search.brand ? search.brand.toUpperCase(): null,
+            chip: search.chip ? search.chip.toUpperCase() : null,
             soat: (search.soat !== '' && search.soat !== null) ? new Date(search.soat) : null,
             tecno: (search.tecno !== '' && search.tecno !== null) ? new Date(search.tecno) : null,
             km: search.kilometraje,
@@ -348,7 +348,7 @@ export default function Vehicles() {
           .then(({data})=>{
             // 2. Comprobar si hay archivos NUEVOS para subir
             const formData = new FormData();
-            formData.append('placa', search.plate);
+            formData.append('placa', search.plate.toUpperCase());
     
             let hasNewFiles = false;
     
