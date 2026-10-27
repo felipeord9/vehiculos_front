@@ -1,7 +1,7 @@
 import * as FiIcons from 'react-icons/fi';
 import DataTable from 'react-data-table-component'
 import useAlert from '../../hooks/useAlert';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useUser from '../../hooks/useUser';
 import AuthContext from '../../context/authContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,19 @@ export default function TableVehicles({ vehicles, loading, setSelectedVehicle, s
   const { user } = useContext(AuthContext);
   const { isLogged, logout } = useUser();
   const navigate = useNavigate();
+
+  const [isMobile, setIsMobile] = useState(null);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 600px)");
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", () =>
+      setIsMobile(mediaQuery.matches)
+    );
+    return () =>
+      mediaQuery.removeEventListener("change", () =>
+        setIsMobile(mediaQuery.matches)
+      );
+  }, []);
 
   const columns = [
     {
@@ -25,14 +38,14 @@ export default function TableVehicles({ vehicles, loading, setSelectedVehicle, s
       name: "Tipo Vehúclo",
       selector: (row) => row.typeVehicle,
       sortable: true,
-      width: 'auto'
+      width: isMobile ? '150px' : 'auto'
     },
     {
       id: "C.O.",
       name: "C.O.",
       selector: (row) => row.co,
       sortable: true,
-      width: 'auto'
+      width: isMobile ? '90px' : 'auto'
     },
     {
       id: "options",
@@ -51,7 +64,7 @@ export default function TableVehicles({ vehicles, loading, setSelectedVehicle, s
           }
         </div>
       ),
-      width: '150px'
+      width: isMobile ? '100px' : '150px'
     },
   ]
 

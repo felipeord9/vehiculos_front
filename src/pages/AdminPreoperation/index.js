@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { json, useNavigate } from "react-router-dom";
 import * as HiIcons from "react-icons/hi";
 import * as FaIcons from "react-icons/fa";
 import * as VscIcons from "react-icons/vsc";
@@ -12,6 +12,8 @@ import { MdPriceChange } from "react-icons/md";
 import { saveAs } from "file-saver";
 import Swal from "sweetalert2";
 import './styles.css'
+import { findAgencies } from "../../services/agencyService";
+import { getRecordPriority } from "../../utils/inspectionPriority";
 
 export default function AdminPreoperation() {
   const { user } = useContext(AuthContext);
@@ -22,14 +24,21 @@ export default function AdminPreoperation() {
     initialDate: null,
     finalDate: null,
   });
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState({
+    input: '',
+    co: ''
+  });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const refTable = useRef();
   const [typeFillDate, setTypeFillDate] = useState('');
+  const refCo = useRef();
+  const [agencias, setAgencias] = useState({});
+  const [priorityFilter, setPriorityFilter] = useState("");
 
   useEffect(()=>{
     setLoading(true)
+    findAgencies().then(({data})=> setAgencias(data));
     if(user.role === 'admin'){
       findRecords()
         .then(({data}) => (setRecords(data), setSuggestions(data), setLoading(false)))
@@ -71,12 +80,112 @@ export default function AdminPreoperation() {
     }
   }
 
+  const completeSearch = (e) => {
+    e.preventDefault();
+
+    let result = records;
+
+    // Filtro por placa o CO
+    if (search.co !== "") {
+      const valor = search.co.toLowerCase();
+
+      result = result.filter((elem) => {
+        const dato = String(elem.co ?? "").toLowerCase();
+        return dato.includes(valor);
+      });
+    }
+
+    // Filtro por fecha
+    const initialValue = filterDate.initialDate;
+    const finalValue = filterDate.finalDate;
+
+    const hasInitialDate =
+      initialValue !== null &&
+      initialValue !== undefined &&
+      initialValue !== "";
+
+    const hasFinalDate =
+      finalValue !== null &&
+      finalValue !== undefined &&
+      finalValue !== "";
+
+    // Validar que se ingresen ambas fechas
+    if (hasInitialDate !== hasFinalDate) {
+      Swal.fire({
+        icon: "warning",
+        title: "¡Atención!",
+        text: "Para filtrar por fecha debes especificar la fecha inicial y la fecha final.",
+        confirmButtonColor: "red",
+        confirmButtonText: "OK",
+      });
+
+      return;
+    }
+
+    // Aplicar filtro por rango de fechas
+    if (hasInitialDate && hasFinalDate) {
+      const initialDate = new Date(`${initialValue}T00:00:00`);
+      const finalDate = new Date(`${finalValue}T23:59:59.999`);
+
+      if (
+        Number.isNaN(initialDate.getTime()) ||
+        Number.isNaN(finalDate.getTime())
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fechas inválidas",
+          text: "Verifica las fechas seleccionadas e inténtalo nuevamente.",
+          confirmButtonColor: "red",
+        });
+
+        return;
+      }
+
+      if (initialDate > finalDate) {
+        Swal.fire({
+          icon: "warning",
+          title: "Rango de fechas inválido",
+          text: "La fecha inicial no puede ser posterior a la fecha final.",
+          confirmButtonColor: "red",
+        });
+
+        return;
+      }
+
+      result = result.filter((elem) => {
+        if (!elem.createdAt) return false;
+
+        const itemDate = new Date(elem.createdAt);
+
+        if (Number.isNaN(itemDate.getTime())) return false;
+
+        return itemDate >= initialDate && itemDate <= finalDate;
+      });
+    }
+
+    // Filtro por prioridad
+    if (priorityFilter !== "") {
+      result = result.filter((elem) => {
+        return getRecordPriority(elem) === priorityFilter;
+      });
+    }
+
+    // Cargar los resultados
+    setSuggestions(result);
+  };
+
   const removeFilterDate = () => {
     setFilterDate({
       initialDate: '',
       finalDate: '',
     });
+    setSearch({
+      co: '',
+      input: ''
+    })
     setTypeFillDate('');
+    setPriorityFilter('');
+    setSuggestions(records)
   };
 
   const searchReturns = (e) => {
@@ -264,21 +373,21 @@ export default function AdminPreoperation() {
             <form
               className="position-relative d-flex justify-content-center w-100"
               onSubmit={searchReturns/* findOrder */}
-            >
+              >
               <input
                 type="search"
-                value={search}
+                value={search?.input}
                 className="form-control form-control-sm"
                 style={{paddingRight: 35, textTransform:'uppercase'}}
                 placeholder="Buscar por placa o conductor"
                 /* onChange={(e) => setSearch(e.target.value)} */
                 onChange={(e)=>searchReturns(e)}
-              />
+                />
               <button
                 type="submit"
                 className="position-absolute btn btn-sm"
                 style={{ right: 0 }}
-              >
+                >
                   {search?.length ? <FaIcons.FaSearch /> : <VscIcons.VscDebugRestart />}
               </button>
             </form>
@@ -294,6 +403,7 @@ export default function AdminPreoperation() {
               </button>
               <ul class="dropdown-menu p-0 m-0">
                 {/* <label className="d-flex w-100 text-primary fw-bold ms-2">Tipo de filtro:</label> */} 
+                <label className="mb-1 text-primary w-100 justify-content-center align-text-center d-flex">Filtro por fecha</label>
                 <li className="d-flex flex-row gap-2 mb-1 mt-2">
                   <input
                     id="initialDate"
@@ -316,10 +426,56 @@ export default function AdminPreoperation() {
                   />
                   
                 </li>
+                {user.role === 'admin' &&
+                  <div>
+                    <label className="mb-1 text-primary w-100 justify-content-center align-text-center d-flex">Filtro por C.O.</label>
+                    <li className="gap-2 d-flex p-1">
+                      <select
+                        ref={refCo}
+                        id="co"
+                        className="form-select form-select-sm"
+                        value={search?.co}
+                        onChange={(e)=>setSearch({...search, co: e.target.value})}
+                        required
+                      >
+                        <option value="" selected disabled>
+                          -- SELECCIONE UN C.O. --
+                        </option>
+                        {agencias.length > 0 && agencias
+                          ?.sort((a,b)=>a.id - b.id)
+                          ?.map((elem) => (
+                            <option key={elem.id} value={elem.rowId}>
+                              {elem.rowId} - {elem.description}
+                            </option>
+                          ))}
+                      </select>
+                    </li>
+                  </div>
+                }
+                <div className="mb-2">
+                  <label className="mb-1 text-primary w-100 justify-content-center align-text-center d-flex">Filtro por prioridad</label>
+                  <li>
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ minWidth: "155px" }}
+                      value={priorityFilter}
+                      onChange={(e) => setPriorityFilter(e.target.value)}
+                      aria-label="Filtrar por prioridad"
+                    >
+                      <option value="" selected disabled>
+                        -- SELECCIONE UNA PRIORIDAD --
+                      </option>
+                      <option value="ALTO">🔴 ALTO</option>
+                      <option value="MEDIO">🟠 MEDIO</option>
+                      <option value="BAJO">🟡 BAJO</option>
+                      <option value="SIN NOVEDADES">🟢 SIN NOVEDADES</option>
+                    </select>
+                  </li>
+                </div>
                   <li className="gap-2 d-flex p-1">
                       <button
                         className="btn btn-sm btn-primary w-100"
-                        onClick={(e)=>handleFilterDate(e)}
+                        onClick={(e)=>completeSearch(e)}
                       >
                         Filtrar
                       </button>

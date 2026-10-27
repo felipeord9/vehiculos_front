@@ -49,6 +49,7 @@ export default function Preoperational() {
   /* Formulario verificacion */
   const [dataVerification, setDataVerification] = useState({});
   const [newsToSend, setNewsToSend] = useState({});
+  const [adminNotify, setAdmonNotify] = useState({})
 
   /* Formulario de fallas */
   const [tieneFalla, setTieneFalla] = useState('');
@@ -334,7 +335,8 @@ export default function Preoperational() {
                 if(newsToSend.length > 0){
                   const info = {
                     novedades: newsToSend,
-                    infoDriver: data
+                    infoDriver: data,
+                    destiny: user.co ? user.co : null,
                   }
                   sendMailNews(info)
                     .then(()=>{
@@ -798,26 +800,41 @@ export default function Preoperational() {
     }
     if(activeTab === 2){
       if(platesSeleccionado && driverSeleccionado && 
-        health !== null && health !== '' &&
-        dataVerification.ultimoKilometraje && dataVerification.portaLicenciaConduccion &&
-        dataVerification.portaLicenciaTransito && dataVerification.portaSOAT &&
-        dataVerification.portaTecnicoMecanica && dataVerification.portaCedula &&
-        dataVerification.aceiteMotor && dataVerification.liquidoFrenos &&
-        dataVerification.nivelCombustible && dataVerification.liquidoRefrigerante &&
-        dataVerification.estadoLlantas && dataVerification.lucesPrincipales &&
-        dataVerification.lucesDireccionales && dataVerification.lucesStop &&
-        dataVerification.frenosGeneral && dataVerification.ManiguetaFreno &&
-        dataVerification.casco && dataVerification.calzado &&
-        dataVerification.chaleco && dataVerification.impermeable &&
-        dataVerification.guardabarros && dataVerification.sillin &&
-        dataVerification.Reposapies && dataVerification.Espejos &&
-        dataVerification.Pito && dataVerification.cadena &&
-        dataVerification.pata && dataVerification.protectorExhosto &&
-        dataVerification.maletin && dataVerification.velocimetro &&
-        dataVerification.placa && dataVerification.clutch
+          health !== null && health !== '' &&
+          dataVerification.ultimoKilometraje && dataVerification.portaLicenciaConduccion &&
+          dataVerification.portaLicenciaTransito && dataVerification.portaSOAT &&
+          dataVerification.portaTecnicoMecanica && dataVerification.portaCedula &&
+          dataVerification.aceiteMotor && dataVerification.liquidoFrenos &&
+          dataVerification.nivelCombustible && dataVerification.estadoLlantas && dataVerification.lucesPrincipales &&
+          dataVerification.lucesDireccionales && dataVerification.lucesStop &&
+          dataVerification.frenosGeneral && dataVerification.calzado &&
+          dataVerification.sillin && dataVerification.Espejos &&
+          dataVerification.Pito && dataVerification.velocimetro &&
+          dataVerification.placa && dataVerification.clutch &&
+          dataVerification.novedadesMotor && dataVerification.novedadesLatoneria
       ){
-        setActiveTab(3)
-        setTap3Enable(true)
+        if(platesSeleccionado.typeVehicle === 'CAMION' ? 
+          dataVerification.motorThermo && dataVerification.temperaturaThermo &&
+          dataVerification.kitCarretera && dataVerification.liquidoRefrigerante
+          :
+          dataVerification.ManiguetaFreno && dataVerification.casco &&
+          dataVerification.chaleco && dataVerification.impermeable &&
+          dataVerification.guardabarros && dataVerification.Reposapies &&
+          dataVerification.cadena && dataVerification.pata && 
+          dataVerification.protectorExhosto && dataVerification.maletin
+        ){
+          adminNotify.length > 0 ? setTieneFalla('SI') : setTieneFalla('')
+          setActiveTab(3)
+          setTap3Enable(true)
+        }else{
+          Swal.fire({
+            icon: 'warning',
+            title: '¡Atención!',
+            text: 'Para poder continuar debes llenar todos los campos',
+            timer: 50000,
+            showConfirmButton: false
+          })
+        }
       }else{
         Swal.fire({
           icon: 'warning',
@@ -835,36 +852,50 @@ export default function Preoperational() {
         dataVerification.portaLicenciaTransito && dataVerification.portaSOAT &&
         dataVerification.portaTecnicoMecanica && dataVerification.portaCedula &&
         dataVerification.aceiteMotor && dataVerification.liquidoFrenos &&
-        dataVerification.nivelCombustible && dataVerification.liquidoRefrigerante &&
-        dataVerification.estadoLlantas && dataVerification.lucesPrincipales &&
+        dataVerification.nivelCombustible && dataVerification.estadoLlantas && dataVerification.lucesPrincipales &&
         dataVerification.lucesDireccionales && dataVerification.lucesStop &&
-        dataVerification.frenosGeneral && dataVerification.ManiguetaFreno &&
-        dataVerification.casco && dataVerification.calzado &&
-        dataVerification.chaleco && dataVerification.impermeable &&
-        dataVerification.guardabarros && dataVerification.sillin &&
-        dataVerification.Reposapies && dataVerification.Espejos &&
-        dataVerification.Pito && dataVerification.cadena &&
-        dataVerification.pata && dataVerification.protectorExhosto &&
-        dataVerification.maletin && dataVerification.velocimetro &&
+        dataVerification.frenosGeneral && dataVerification.calzado &&
+        dataVerification.sillin && dataVerification.Espejos &&
+        dataVerification.Pito && dataVerification.velocimetro &&
         dataVerification.placa && dataVerification.clutch &&
+        dataVerification.novedadesMotor && dataVerification.novedadesLatoneria &&
         tieneFalla !== null && tieneFalla !== ''
       ){
-        if(tieneFalla === 'SI'){
-          if(search.observations !== '' && search.observations !== null &&
-            evidence !== null
-          ){
+        if(platesSeleccionado.typeVehicle === 'CAMION' ? 
+          dataVerification.motorThermo && dataVerification.temperaturaThermo &&
+          dataVerification.kitCarretera && dataVerification.liquidoRefrigerante
+          :
+          dataVerification.ManiguetaFreno && dataVerification.casco &&
+          dataVerification.chaleco && dataVerification.impermeable &&
+          dataVerification.guardabarros && dataVerification.Reposapies &&
+          dataVerification.cadena && dataVerification.pata && 
+          dataVerification.protectorExhosto && dataVerification.maletin
+        ){
+          if(tieneFalla === 'SI'){
+            if(search.observations !== '' && search.observations !== null &&
+              evidence !== null
+            ){
+              handleSubmit(e)
+            } else {
+              Swal.fire({
+                icon: 'warning',
+                title: '¡Atención!',
+                text: 'Debes especificar la falla y tomar evidencia.',
+                timer: 50000,
+                showConfirmButton: false
+              })
+            }
+          } else if(tieneFalla === 'NO')  {
             handleSubmit(e)
-          } else {
-            Swal.fire({
-              icon: 'warning',
-              title: '¡Atención!',
-              text: 'Debes especificar la falla y tomar evidencia.',
-              timer: 50000,
-              showConfirmButton: false
-            })
           }
-        } else if(tieneFalla === 'NO')  {
-          handleSubmit(e)
+        }else{
+          Swal.fire({
+            icon: 'warning',
+            title: '¡Atención!',
+            text: 'Para poder continuar debes llenar todos los campos',
+            timer: 50000,
+            showConfirmButton: false
+          })
         }
       } else {
         Swal.fire({
@@ -1170,6 +1201,7 @@ export default function Preoperational() {
                   setFormData={setDataVerification}
                   news={newsToSend}
                   setNews={setNewsToSend}
+                  setAdminNotifications={setAdmonNotify}
                 />
                 <div className="d-flex flex-row gap-3 pt-4 pb-1">
                   <button
@@ -1206,6 +1238,7 @@ export default function Preoperational() {
                         ? "btn-danger text-white border-danger shadow-sm"
                         : "bg-light text-secondary border-light-subtle"
                     }`}
+                    disabled={adminNotify.length > 0 ? true : false}
                     style={{ transition: "all 0.2s ease" }}
                   >
                     <BsHandThumbsDownFill />
@@ -1222,6 +1255,7 @@ export default function Preoperational() {
                         ? "btn-success text-white border-success shadow-sm"
                         : "bg-light text-secondary border-light-subtle"
                     }`}
+                    disabled={adminNotify.length > 0 ? true : false}
                     style={{ transition: "all 0.2s ease" }}
                   >
                     <BsHandThumbsUpFill />

@@ -598,72 +598,82 @@ export default function Vehicles() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="mt-2 mb-1">Saneamiento Carnico</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="saneamientoCarnico"
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={search.saneamientoCarnico}
-                    onChange={(e)=> handlerChangeSearch(e)}
-                    required
-                  />
+              {search.typeVehicle === 'CAMION' &&
+                <div>
+                  <label className="mt-2 mb-1">Saneamiento Carnico</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="saneamientoCarnico"
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={search.saneamientoCarnico}
+                      onChange={(e)=> handlerChangeSearch(e)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="mt-2 mb-1">Saneamiento Pesquero</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="saneamientoPesquero"
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={search.saneamientoPesquero}
-                    onChange={(e)=> handlerChangeSearch(e)}
-                    required
-                  />
+              }
+              {search.typeVehicle === 'CAMION' &&
+                <div>
+                  <label className="mt-2 mb-1">Saneamiento Pesquero</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="saneamientoPesquero"
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={search.saneamientoPesquero}
+                      onChange={(e)=> handlerChangeSearch(e)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="mt-2 mb-1">Fumigación</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="fumigacion"
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={search.fumigacion}
-                    onChange={(e)=> handlerChangeSearch(e)}
-                    required
-                  />
+              }
+              {search.typeVehicle === 'CAMION' &&
+                <div>
+                  <label className="mt-2 mb-1">Fumigación</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="fumigacion"
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={search.fumigacion}
+                      onChange={(e)=> handlerChangeSearch(e)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="mt-2 mb-1">Invima</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="invima"
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={search.invima}
-                    onChange={(e)=> handlerChangeSearch(e)}
-                    required
-                  />
+              }
+              {search.typeVehicle === 'CAMION' &&
+                <div>
+                  <label className="mt-2 mb-1">Invima</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="invima"
+                      type="date"
+                      className="form-control form-control-sm"
+                      value={search.invima}
+                      onChange={(e)=> handlerChangeSearch(e)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="mt-2 mb-1">Póliza</label>
-                <div className={`d-flex align-items-center position-relative w-100`}>
-                  <input
-                    id="poliza"
-                    type="date"
-                    value={search.poliza}
-                    className="form-control form-control-sm"
-                    onChange={(e)=> handlerChangeSearch(e)}
-                    required
-                  />
+              }
+              {search.typeVehicle === 'CAMION' &&
+                <div>
+                  <label className="mt-2 mb-1">Póliza</label>
+                  <div className={`d-flex align-items-center position-relative w-100`}>
+                    <input
+                      id="poliza"
+                      type="date"
+                      value={search.poliza}
+                      className="form-control form-control-sm"
+                      onChange={(e)=> handlerChangeSearch(e)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              {id ?
+              }
+              {(id) ?
                 <div>
                   <label className="mt-2 mb-1">Fecha Creación</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
@@ -677,7 +687,7 @@ export default function Vehicles() {
                     />
                   </div>
                 </div>
-                :
+                : search.typeVehicle === 'CAMION' &&
                 <div>
                   <label className="mt-2 mb-1">Fecha Creación</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
@@ -722,59 +732,71 @@ export default function Vehicles() {
                 downloadUrl={getDocUrl(documents.tecno)}
               />
 
-              <FileUploadCard
-                label="FUMIGACIÓN"
-                file={documents.fumigacion}
-                onFileSelect={(file) => handleFileChange('fumigacion', file)}
-                onRemoveFile={() => handleRemoveFile('fumigacion')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.fumigacion)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="FUMIGACIÓN"
+                  file={documents.fumigacion}
+                  onFileSelect={(file) => handleFileChange('fumigacion', file)}
+                  onRemoveFile={() => handleRemoveFile('fumigacion')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.fumigacion)}
+                />
+              }
 
-              <FileUploadCard
-                label="SANEAMIENTO CARNICO"
-                file={documents.saneamientoCarnico}
-                onFileSelect={(file) => handleFileChange('saneamientoCarnico', file)}
-                onRemoveFile={() => handleRemoveFile('saneamientoCarnico')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.saneamientoCarnico)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="SANEAMIENTO CARNICO"
+                  file={documents.saneamientoCarnico}
+                  onFileSelect={(file) => handleFileChange('saneamientoCarnico', file)}
+                  onRemoveFile={() => handleRemoveFile('saneamientoCarnico')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.saneamientoCarnico)}
+                />
+              }
 
-              <FileUploadCard
-                label="SANEAMIENTO PESQUERO"
-                file={documents.saneamientoPesquero}
-                onFileSelect={(file) => handleFileChange('saneamientoPesquero', file)}
-                onRemoveFile={() => handleRemoveFile('saneamientoPesquero')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.saneamientoPesquero)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="SANEAMIENTO PESQUERO"
+                  file={documents.saneamientoPesquero}
+                  onFileSelect={(file) => handleFileChange('saneamientoPesquero', file)}
+                  onRemoveFile={() => handleRemoveFile('saneamientoPesquero')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.saneamientoPesquero)}
+                />
+              }
 
-              <FileUploadCard
-                label="POLIZA"
-                file={documents.poliza}
-                onFileSelect={(file) => handleFileChange('poliza', file)}
-                onRemoveFile={() => handleRemoveFile('poliza')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.poliza)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="POLIZA"
+                  file={documents.poliza}
+                  onFileSelect={(file) => handleFileChange('poliza', file)}
+                  onRemoveFile={() => handleRemoveFile('poliza')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.poliza)}
+                />
+              }
 
-              <FileUploadCard
-                label="INVIMA"
-                file={documents.invima}
-                onFileSelect={(file) => handleFileChange('invima', file)}
-                onRemoveFile={() => handleRemoveFile('invima')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.invima)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="INVIMA"
+                  file={documents.invima}
+                  onFileSelect={(file) => handleFileChange('invima', file)}
+                  onRemoveFile={() => handleRemoveFile('invima')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.invima)}
+                />
+              }
 
-              <FileUploadCard
-                label="LIMPIEZA Y DESINFECCIÓN"
-                file={documents.limpiezaDesinfeccion}
-                onFileSelect={(file) => handleFileChange('limpiezaDesinfeccion', file)}
-                onRemoveFile={() => handleRemoveFile('limpiezaDesinfeccion')}
-                colors={colors}
-                downloadUrl={getDocUrl(documents.limpiezaDesinfeccion)}
-              />
+              {search.typeVehicle === 'CAMION' &&
+                <FileUploadCard
+                  label="LIMPIEZA Y DESINFECCIÓN"
+                  file={documents.limpiezaDesinfeccion}
+                  onFileSelect={(file) => handleFileChange('limpiezaDesinfeccion', file)}
+                  onRemoveFile={() => handleRemoveFile('limpiezaDesinfeccion')}
+                  colors={colors}
+                  downloadUrl={getDocUrl(documents.limpiezaDesinfeccion)}
+                />
+              }
 
               <FileUploadCard
                 label="TARJETA DE PROPIEDAD"

@@ -1,7 +1,7 @@
 import * as FiIcons from 'react-icons/fi';
 import DataTable from 'react-data-table-component'
 import useAlert from '../../hooks/useAlert';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useUser from '../../hooks/useUser';
 import AuthContext from '../../context/authContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,19 @@ export default function TableDrivers({ drivers, loading, setSelectedDriver, setS
   const { user } = useContext(AuthContext);
   const { isLogged, logout } = useUser();
   const navigate = useNavigate();
+
+  const [isMobile, setIsMobile] = useState(null);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 600px)");
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", () =>
+      setIsMobile(mediaQuery.matches)
+    );
+    return () =>
+      mediaQuery.removeEventListener("change", () =>
+        setIsMobile(mediaQuery.matches)
+      );
+  }, []);
 
   const columns = [
     {
@@ -25,14 +38,14 @@ export default function TableDrivers({ drivers, loading, setSelectedDriver, setS
       name: "Nombre",
       selector: (row) => row.name,
       sortable: true,
-      width: 'auto'
+      width: isMobile ? '300px' : 'auto'
     },
     {
       id: "C.O.",
       name: "C.O.",
       selector: (row) => row.co,
       sortable: true,
-      width: 'auto'
+      width: isMobile ? '90px' : 'auto'
     },
     {
       id: "options",
@@ -51,7 +64,7 @@ export default function TableDrivers({ drivers, loading, setSelectedDriver, setS
           }
         </div>
       ),
-      width: '150px'
+      width: '100px'
     },
   ]
 

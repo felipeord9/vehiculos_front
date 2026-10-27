@@ -47,28 +47,28 @@ export default function EditPreOperational() {
   const [videoEvidencia, setVideoEvidencia] = useState('');
 
   useEffect(() => {
-    if(user && (user.role === 'admin' || user.role === 'solicitante')){
-    setLoading(true)
-    findOneRecord(id)
-      .then(({data})=>{
-        const url = `${config.apiUrl2}/upload/obtener-archivo/evidence_${data.id}`
-        setSearch(data)
-        setVideoEvidencia(url)
-      })
-      .catch(()=>{
-        console.log('error')
-        setSuggestions({})
-        Swal.fire({
-          icon:'warning',
-          title:'¡ATENCIÓN!',
-          text:'Ha ocurrido un error al momento de abrir el vínculo. Vuelve a intentarlo, si el problema persiste comunícate con la auxiliar del fondo de empleados.',
-          confirmButtonText:'OK',
-          confirmButtonColor:'red'
+    if(user && (user.role === 'admin' || user.role === 'jefe')){
+      setLoading(true)
+      findOneRecord(id)
+        .then(({data})=>{
+          const url = `${config.apiUrl2}/upload/obtener-archivo/evidence_${data.id}`
+          setSearch(data)
+          setVideoEvidencia(url)
         })
-        .then(()=>{
-            window.location.href = "about:blank"
+        .catch(()=>{
+          console.log('error')
+          setSuggestions({})
+          Swal.fire({
+            icon:'warning',
+            title:'¡ATENCIÓN!',
+            text:'Ha ocurrido un error al momento de abrir el vínculo. Vuelve a intentarlo, si el problema persiste comunícate con la auxiliar del fondo de empleados.',
+            confirmButtonText:'OK',
+            confirmButtonColor:'red'
+          })
+          .then(()=>{
+              window.location.href = "about:blank"
+          })
         })
-      })
     }else{
       navigate('/login')
     }

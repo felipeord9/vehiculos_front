@@ -53,6 +53,7 @@ export default function ModalUsers({
       rowId: info.rowId,
       username: info.username,
       name: info.name.toUpperCase(),
+      email: info.email !== '' ? info.email : null,
       password: info.password,
       role: info.role,
       co: info.co,
@@ -151,6 +152,23 @@ export default function ModalUsers({
           <form onSubmit={user ? handleUpdateUser : handleCreateNewUser}>
             <div>
               <div>
+                <label className="fw-bold">Rol</label>
+                <select
+                  id="role"
+                  value={info.role}
+                  className="form-select form-select-sm"
+                  onChange={handleChange}
+                  required
+                >
+                  <option selected disabled value="">
+                    -- Seleccione un rol --
+                  </option>
+                  <option value="usuario">Usuario</option>
+                  <option value="jefe">Jefe/Coordinador</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <div>
                 <label className="fw-bold">Identificador</label>
                 <input
                   id="rowId"
@@ -187,6 +205,20 @@ export default function ModalUsers({
                   required
                 />
               </div>
+              {info.role === 'jefe' &&
+                <div>
+                  <label className="fw-bold">Correo Electrónico</label>
+                  <input
+                    id="email"
+                    type="text"
+                    value={info.email}
+                    className="form-control form-control-sm"
+                    onChange={handleChange}
+                    autoComplete="off"
+                    required={info.role === 'jefe' ? true : false}
+                  />
+                </div>
+              }
               {!user ? (
                 <div>
                   <label className="fw-bold">Contraseña</label>
@@ -228,23 +260,6 @@ export default function ModalUsers({
                   </div>
                 </div> 
               )}
-              <div>
-                <label className="fw-bold">Rol</label>
-                <select
-                  id="role"
-                  value={info.role}
-                  className="form-select form-select-sm"
-                  onChange={handleChange}
-                  required
-                >
-                  <option selected disabled value="">
-                    -- Seleccione un rol --
-                  </option>
-                  <option value="usuario">Usuario</option>
-                  <option value="jefe">Jefe/Coordinador</option>
-                  <option value="admin">Administrador</option>
-                </select>
-              </div>
               <div>
                 <label className="fw-bold">C.O.</label>
                 <select
