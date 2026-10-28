@@ -494,11 +494,17 @@ export default function DynamicInspectionForm({
     );
 
     return Object.entries(currentFormData)
-      .filter(
-        ([id, value]) =>
-          visibleIds.has(id) &&
-          (value === "NO" || value === "MALO")
-      )
+      .filter(([id, value]) => {
+        if (!visibleIds.has(id)) return false;
+
+        // Excepción: Para estas dos preguntas, la novedad ocurre si responden "SI"
+        if (id === "novedadesMotor" || id === "novedadesLatoneria") {
+          return value === "SI";
+        }
+
+        // Comportamiento normal para el resto de preguntas
+        return value === "NO" || value === "MALO";
+      })
       .map(([id, valor]) => {
         const question = QUESTIONS.find(
           (item) => item.id === id
