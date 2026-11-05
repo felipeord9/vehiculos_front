@@ -20,6 +20,8 @@ import Navbar from './components/Navbar';
 import PrivateRoute from "./components/PrivateRoute";
 import { AuthContextProvider } from './context/authContext';
 import { ClientContextProvider } from "./context/clientContext";
+import { NotificationProvider } from "./context/notificationContext";
+import { PreOpePendProvider } from "./context/preOpePendContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -27,36 +29,40 @@ function App() {
   return (
     <AuthContextProvider>
       <ClientContextProvider>
-        <Router>
-          <Navbar />
-          <div id='wrapper' className="d-flex vh-100 overflow-auto p-0">
-            <Routes>
-              <Route path='/' element={<Navigate to="/login" />} />
-              <Route path='/login' element={<Login />} />
-              <Route path='/home' element={<PrivateRoute component={Home} />} />
-              <Route path='/administracion' element={<PrivateRoute component={Users} />} />
-              <Route path='/admin/pre/operational' element={<PrivateRoute component={AdminPreoperation} />} />
-              <Route path='/pre/operational' element={<PrivateRoute component={Preoperational} />} />
-              <Route path='/pre/operational/:id' element={<PrivateRoute component={EditPreOperational} />} />
-              <Route path='/vehicle' element={<PrivateRoute component={Vehicles} />} />
-              <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
-              <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
-              <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
-              <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
+        <NotificationProvider>
+          <PreOpePendProvider>
+            <Router>
+              <Navbar />
+              <div id='wrapper' className="d-flex vh-100 overflow-auto p-0">
+                <Routes>
+                  <Route path='/' element={<Navigate to="/login" />} />
+                  <Route path='/login' element={<Login />} />
+                  <Route path='/home' element={<PrivateRoute component={Home} />} />
+                  <Route path='/administracion' element={<PrivateRoute component={Users} />} />
+                  <Route path='/admin/pre/operational' element={<PrivateRoute component={AdminPreoperation} />} />
+                  <Route path='/pre/operational' element={<PrivateRoute component={Preoperational} />} />
+                  <Route path='/pre/operational/:id' element={<PrivateRoute component={EditPreOperational} />} />
+                  <Route path='/vehicle' element={<PrivateRoute component={Vehicles} />} />
+                  <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
+                  <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
+                  <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
+                  <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
 
-              {/* sesiones sin completar */}
-              <Route path='/gps' element={<PrivateRoute component={Gps} />} />
-              <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
-              <Route path='/educacion' element={<PrivateRoute component={Home} />} />
-              <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
-    
-              <Route path='/cambiar/contrasena' element={<PrivateRoute component={ChangePassword} />} />
-              <Route path='/enviar/recuperacion' element={<SendRecoveryPassword/>} />
-              <Route path='/recuperacion/contrasena/:token' element={<RecoveryPassword/>} />
-              <Route path='*' element={<Page404 />} /> 
-            </Routes>
-          </div>
-        </Router>
+                  {/* sesiones sin completar */}
+                  <Route path='/gps' element={<PrivateRoute component={Gps} />} />
+                  <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
+                  <Route path='/educacion' element={<PrivateRoute component={Home} />} />
+                  <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
+        
+                  <Route path='/cambiar/contrasena' element={<PrivateRoute component={ChangePassword} />} />
+                  <Route path='/enviar/recuperacion' element={<SendRecoveryPassword/>} />
+                  <Route path='/recuperacion/contrasena/:token' element={<RecoveryPassword/>} />
+                  <Route path='*' element={<Page404 />} /> 
+                </Routes>
+              </div>
+            </Router>
+          </PreOpePendProvider>
+        </NotificationProvider>
       </ClientContextProvider>
     </AuthContextProvider>
   );

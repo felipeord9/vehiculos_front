@@ -179,7 +179,7 @@ function TablePreOperation({ records, getAllRecords, loading }) {
           alerts.some((alert) => alert.level === level)
         );
         return(
-          <label>{(priority || row?.fallas) ? 'SI' : 'NO'}</label>
+          <label>{(priority || row.fallas === 'SI') ? 'SI' : 'NO'}</label>
         )
       },
       sortable: true,

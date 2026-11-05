@@ -55,10 +55,14 @@ const QUESTIONS = [
   { id: "velocimetro", label: "Velocímetro", type: "triple" },
   { id: "placa", label: "Placa", type: "triple" },
   { id: "clutch", label: "Clutch Embrague", type: "triple" },
-
+  { id: "motorThermo", label: "Motor de Thermo", type: "triple" },
+  { id: "temperaturaThermo", label: "¿Thermo presenta temperaturas igual o menor a -15 grados?", type: "binary" },
+  { id: "novedadesMotor", label: "¿Presenta novedades en el motor?", type: "binary" },
+  { id: "novedadesLatoneria", label: "¿Presenta daños y/o desgaste en la latonería?", type: "binary" },
+  { id: "kitCarretera", label: "¿Kit de carretera al día?", type: "binary" },
 ];
 
-// 2. FUNCIÓN DE MAPEO (Convierte los nombres del Backend a las IDs de QUESTIONS)
+// 2. FUNCIÓN DE MAPEO
 const mapBackendToQuestions = (apiData) => {
   if (!apiData) return {};
 
@@ -71,7 +75,7 @@ const mapBackendToQuestions = (apiData) => {
     portaCedula: apiData.cedula,
     aceiteMotor: apiData.aceiteMotor,
     liquidoFrenos: apiData.liquidoFrenos,
-    nivelCombustible: apiData.nivelCombustuble, // Corrige typos del backend
+    nivelCombustible: apiData.nivelCombustuble,
     liquidoRefrigerante: apiData.liquidoRefrigerante,
     estadoLlantas: apiData.llantas,
     lucesPrincipales: apiData.lucesPrincipales,
@@ -97,15 +101,18 @@ const mapBackendToQuestions = (apiData) => {
     clutch: apiData.clutch,
     reportarFalla: apiData.fallas || "NO",
     resumenInspeccion: apiData.resumenFallas || "Te autorizamos para conducir el Vehículo el día de hoy",
-    evidenciaVideo: apiData.evidencia // Puede ser un booleano, string URL o null
+    evidenciaVideo: apiData.evidencia,
+    motorThermo: apiData.motorThermo,
+    temperaturaThermo: apiData.temperaturaThermo,
+    novedadesMotor: apiData.novedadesMotor,
+    novedadesLatoneria: apiData.novedadesLatoneria,
+    kitCarretera: apiData.kitCarretera,
   };
 };
 
 export default function InspectionAdminAccordion({ apiResponse, video, isMobile }) {
-  // Mapeamos los datos limpios
   const formattedData = mapBackendToQuestions(apiResponse);
 
-  // Agrupamos las preguntas por sección (header)
   const sections = QUESTIONS.reduce((acc, q) => {
     if (q.type === "header") {
       acc.push({ header: q, items: [] });
@@ -115,9 +122,20 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
     return acc;
   }, []);
 
-  // Formato visual de badges
-  const renderStatusBadge = (val) => {
-    if (val === "SI" || val === "BUENO") {
+  // Función modificada para soportar excepciones de color según el ID de la pregunta
+  const renderStatusBadge = (val, itemId) => {
+    const isSpecialInverted = itemId === "novedadesMotor" || itemId === "novedadesLatoneria";
+
+    let isSuccess = val === "SI" || val === "BUENO";
+    let isDanger = val === "NO" || val === "MALO";
+
+    if (isSpecialInverted) {
+      // Invertimos la lógica para estas dos preguntas específicas
+      isSuccess = val === "NO";
+      isDanger = val === "SI";
+    }
+
+    if (isSuccess) {
       return (
         <span className="badge bg-success-subtle text-success border border-success-subtle fw-semibold">
           <BsCheckCircleFill className="me-1 mb-1" />
@@ -125,7 +143,7 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
         </span>
       );
     }
-    if (val === "NO" || val === "MALO") {
+    if (isDanger) {
       return (
         <span className="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold">
           <BsXCircleFill className="me-1 mb-1" />
@@ -146,18 +164,20 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
 
   return (
     <div className="py-0">
-      {/* Encabezado con datos generales del vehículo y conductor */}
+      {/* Encabezado con datos generales */}
       <div className="card mb-3 border-0 shadow-sm bg-light">
         <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             <h5 className="fw-bold text-primary mb-1">
-              {apiResponse?.plate} - {apiResponse?.typeVehicle}
+              - {apiResponse?.plate} {apiResponse?.typeVehicle}
             </h5>
-            <div className="text-muted small" style={{fontSize: 12}}>
-              <strong>Conductor:</strong> {apiResponse?.rowId} - {apiResponse?.driver} | <strong>C.O:</strong> {apiResponse?.co}
+            <div className="text-muted small" style={{ fontSize: 12 }}>
+              - <strong>Conductor:</strong> {apiResponse?.rowId} {apiResponse?.driver} | <strong>C.O:</strong> {apiResponse?.co}
             </div>
           </div>
-          <span style={{fontSize: 12}} className={`badge ${apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ? 'bg-success' : 'bg-danger' }  py-2 px-3`}>{apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ? `✅ ${apiResponse?.health}` : `⛑️ CON LIMITACIÓN DE SALUD`}</span>
+          <span style={{ fontSize: 12 }} className={`badge ${apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ? 'bg-success' : 'bg-danger'} py-2 px-3`}>
+            {apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ? `✅ ${apiResponse?.health}` : `⛑️ CON LIMITACIÓN DE SALUD`}
+          </span>
         </div>
       </div>
 
@@ -167,9 +187,12 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
           const accordionId = `collapse-admin-${idx}`;
           const headerId = `heading-admin-${idx}`;
 
-          // Contar número de novedades/fallas por sección (NO o MALO)
+          // Contar número de novedades/fallas considerando las excepciones de motor y latonería
           const issuesCount = sec.items.filter((item) => {
             const val = formattedData[item.id];
+            if (item.id === "novedadesMotor" || item.id === "novedadesLatoneria") {
+              return val === "SI";
+            }
             return val === "NO" || val === "MALO";
           }).length;
 
@@ -187,9 +210,8 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
                   <div className="d-flex align-items-center justify-content-between w-100 me-3">
                     <span className="fw-bold text-secondary">{sec.header.label}</span>
 
-                    {/* Badge que le avisa al admin si hay algo malo sin necesidad de abrir */}
-                    {apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ?
-                      (issuesCount > 0 ? (
+                    {apiResponse?.health === 'SIN LIMITACIÓN DE SALUD' ? (
+                      issuesCount > 0 ? (
                         <span className="badge bg-danger rounded-pill px-2 py-1 small">
                           ⚠️ {issuesCount} {issuesCount === 1 ? "novedad" : "novedades"}
                         </span>
@@ -197,12 +219,12 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
                         <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
                           ✓ Sin Novedad
                         </span>
-                      ))
-                      :
+                      )
+                    ) : (
                       <span className="badge bg-secondary rounded-pill px-2 py-1 small">
                         No Realizado
                       </span>
-                    }
+                    )}
                   </div>
                 </button>
               </h2>
@@ -212,12 +234,12 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
                 className="accordion-collapse collapse"
                 aria-labelledby={headerId}
                 data-bs-parent="#adminInspectionAccordion"
-                style={{fontSize: 12}}
+                style={{ fontSize: 12 }}
               >
                 <div className="accordion-body p-0">
                   <table className="table table-hover table-striped mb-0 align-middle">
                     <thead className="table-light small">
-                      <tr style={{fontSize: 14}}>
+                      <tr style={{ fontSize: 14 }}>
                         <th className="ps-3 py-2 text-muted" style={{ width: "70%" }}>
                           Ítem Evaluado
                         </th>
@@ -229,12 +251,17 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
                     <tbody>
                       {sec.items.map((item) => {
                         const val = formattedData[item.id];
-                        const isFailure = val === "NO" || val === "MALO";
+                        
+                        // Determinar si la fila debe marcarse como alerta visual en la tabla
+                        const isSpecialInverted = item.id === "novedadesMotor" || item.id === "novedadesLatoneria";
+                        const isFailure = isSpecialInverted ? val === "SI" : (val === "NO" || val === "MALO");
 
                         return (
                           <tr key={item.id} className={isFailure ? "table-danger-subtle" : ""}>
                             <td className="ps-3 py-2 small fw-medium text-dark">{item.label}</td>
-                            <td className="pe-3 py-2 text-end" style={{fontSize: 13}}>{renderStatusBadge(val)}</td>
+                            <td className="pe-3 py-2 text-end" style={{ fontSize: 13 }}>
+                              {renderStatusBadge(val, item.id)}
+                            </td>
                           </tr>
                         );
                       })}
@@ -247,13 +274,11 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
         })}
       </div>
 
-      {/* fallas */}
+      {/* Fallas */}
       <div className="card mb-3 border-0 shadow-sm bg-light">
         <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h5 className="fw-bold text-primary mb-1">
-              Reporte de fallas
-            </h5>
+            <h5 className="fw-bold text-primary mb-1">Reporte de fallas</h5>
             {apiResponse?.resumenFallas && (
               <div className="text-muted small" style={{ fontSize: 12 }}>
                 <strong>Resumen de la falla:</strong> {apiResponse.resumenFallas}
@@ -269,7 +294,6 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
               {apiResponse?.fallas === 'SI' ? '⚠️ Falla reportada' : apiResponse?.fallas === 'NO' ? '✓ Sin Novedad' : 'No Realizado'}
             </span>
 
-            {/* Botón para desplegar el video únicamente si existe evidencia */}
             {apiResponse?.evidencia && video && (
               <button
                 className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
@@ -286,7 +310,6 @@ export default function InspectionAdminAccordion({ apiResponse, video, isMobile 
           </div>
         </div>
 
-        {/* Contenedor colapsable del video */}
         {apiResponse?.evidencia && video && (
           <div className="collapse" id="collapseVideoEvidencia">
             <div className="card-body pt-0">

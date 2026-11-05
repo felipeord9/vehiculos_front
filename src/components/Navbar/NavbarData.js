@@ -11,6 +11,7 @@ import { GoGraph } from "react-icons/go";
 import { MdOutlineSecurity } from "react-icons/md";
 import { TbGpsFilled } from "react-icons/tb";
 import { FaMagnifyingGlass } from "react-icons/fa6";
+import { MdCarRepair } from "react-icons/md";
 
 export const NavBarData = (user) => [
   {
@@ -33,7 +34,7 @@ export const NavBarData = (user) => [
     cName: "nav-text",
     description: 'Formulario Pre Operacional',
     type: 'native',
-    version: '1.1.0',
+    version: '1.1.2',
     active: true,
     access: ['admin', 'jefe', 'usuario']
   },
@@ -65,7 +66,7 @@ export const NavBarData = (user) => [
     id: 5,
     title: "Mantenimiento",
     path: '/mantenimiento',
-    icon: <FaMagnifyingGlass />,
+    icon: <MdCarRepair />,
     cName: "nav-text",
     description: 'Supervisión Vehicular',
     type: 'native',

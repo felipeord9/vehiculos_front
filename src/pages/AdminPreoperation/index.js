@@ -14,6 +14,8 @@ import Swal from "sweetalert2";
 import './styles.css'
 import { findAgencies } from "../../services/agencyService";
 import { getRecordPriority } from "../../utils/inspectionPriority";
+import { useNotifications } from "../../context/notificationContext";
+import { usePendientes } from "../../context/preOpePendContext";
 
 export default function AdminPreoperation() {
   const { user } = useContext(AuthContext);
@@ -36,8 +38,87 @@ export default function AdminPreoperation() {
   const [agencias, setAgencias] = useState({});
   const [priorityFilter, setPriorityFilter] = useState("");
 
+  const {
+    notificaciones,
+    setNotificaciones,
+    noLeidas,
+    loadingNotifications
+  } = useNotifications();
+  const {
+    pendientes,
+    setPendientes,
+    loadingPendientes,
+    ready
+  } = usePendientes();
+  const [showModalNotify, setShowModalNotify] = useState(false);
+
   useEffect(()=>{
     setLoading(true)
+    if (ready && pendientes.length >= 1) {
+      const notificacionesHtml = pendientes
+        .slice()
+        .sort((a, b) => b.id - a.id)
+        .map((notif) => `
+          <div style="
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: left;
+            background: ${notif.leida ? '#f9fafb' : '#fff1f2'};
+          ">
+            <div style="
+              width: 9px;
+              height: 9px;
+              min-width: 9px;
+              margin-top: 5px;
+              border-radius: 50%;
+              background: ${notif.leida ? '#9ca3af' : '#dc2626'};
+            "></div>
+
+            <div>
+              <strong style="font-size: 13px;">
+                Placa: ${notif.plate || 'Sin placa'}
+              </strong>
+
+              <p style="
+                margin: 4px 0;
+                font-size: 12px;
+                color: #dc2626;
+              ">
+                C.O: ${notif.co} - Vehículo tipo: ${notif.typeVehicle || 'No especificado'}
+              </p>
+            </div>
+          </div>
+        `).join('');
+
+      Swal.fire({
+        icon: 'warning',
+        title: '¡ATENCIÓN!',
+        html: `
+          <p style="font-size: 13px; color: #4b5563;">
+            Se encontraron ${pendientes.length} notificacion(es)
+            relacionadas con los vehículos que no han diligenciado
+            el formulario pre-operacional.
+          </p>
+
+          <div style="
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 4px;
+          ">
+            ${notificacionesHtml}
+          </div>
+        `,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#dc2626',
+        width: '480px'
+      });
+    }
+
     findAgencies().then(({data})=> setAgencias(data));
     if(user.role === 'admin'){
       findRecords()

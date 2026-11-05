@@ -600,7 +600,7 @@ export default function Vehicles() {
               </div>
               {search.typeVehicle === 'CAMION' &&
                 <div>
-                  <label className="mt-2 mb-1">Saneamiento Carnico</label>
+                  <label className="mt-2 mb-1">Vencimiento Saneamiento Carnico</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
                     <input
                       id="saneamientoCarnico"
@@ -615,7 +615,7 @@ export default function Vehicles() {
               }
               {search.typeVehicle === 'CAMION' &&
                 <div>
-                  <label className="mt-2 mb-1">Saneamiento Pesquero</label>
+                  <label className="mt-2 mb-1">Vencimiento Saneamiento Pesquero</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
                     <input
                       id="saneamientoPesquero"
@@ -630,7 +630,7 @@ export default function Vehicles() {
               }
               {search.typeVehicle === 'CAMION' &&
                 <div>
-                  <label className="mt-2 mb-1">Fumigación</label>
+                  <label className="mt-2 mb-1">Vencimiento Fumigación</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
                     <input
                       id="fumigacion"
@@ -645,7 +645,7 @@ export default function Vehicles() {
               }
               {search.typeVehicle === 'CAMION' &&
                 <div>
-                  <label className="mt-2 mb-1">Invima</label>
+                  <label className="mt-2 mb-1">Fecha Invima</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
                     <input
                       id="invima"
@@ -660,7 +660,7 @@ export default function Vehicles() {
               }
               {search.typeVehicle === 'CAMION' &&
                 <div>
-                  <label className="mt-2 mb-1">Póliza</label>
+                  <label className="mt-2 mb-1">Vencimiento Póliza</label>
                   <div className={`d-flex align-items-center position-relative w-100`}>
                     <input
                       id="poliza"

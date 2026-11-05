@@ -1,16 +1,19 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import * as HiIcons from "react-icons/hi";
-import * as FaIcons from "react-icons/fa";
-import * as VscIcons from "react-icons/vsc";
-import * as XLSX from "xlsx";
 import AuthContext from "../../context/authContext";
+import { useNotifications } from "../../context/notificationContext";
+import { usePendientes } from "../../context/preOpePendContext";
 import { MdPriceChange } from "react-icons/md";
 import { NavBarData } from "../../components/Navbar/NavbarData";
+import { findNotificationsToday, findNotificationsTodayByCo } from "../../services/notificationService";
 import useUser from "../../hooks/useUser";
 import KpiCard from '../../components/KpiCard';
 import { saveAs } from "file-saver"
 import Swal from "sweetalert2";
+import * as HiIcons from "react-icons/hi";
+import * as FaIcons from "react-icons/fa";
+import * as VscIcons from "react-icons/vsc";
+import * as XLSX from "xlsx";
 import './styles.css';
 
 export default function Home() {
@@ -30,6 +33,14 @@ export default function Home() {
   const navigate = useNavigate();
   const refTable = useRef();
   const [typeFillDate, setTypeFillDate] = useState('');
+
+  const { notificaciones, setNotificaciones, noLeidas, loadingNotifications } = useNotifications();
+  const {
+    pendientes,
+    setPendientes,
+    loadingPendientes,
+    ready,
+  } = usePendientes();
 
   useEffect(() => {
     const tamano = navItems.map((module, idx) => {
@@ -230,6 +241,21 @@ export default function Home() {
                           <h3 className="h5 fw-bold mb-1">{module.title}</h3>
                           <p className=" small mb-0">{module.description || 'Módulo disponible'}</p>
                         </div>
+                        {(module.path === "/admin/pre/operational" 
+                          && ready && pendientes.length > 0 
+                          && (user.role === 'admin' || user.role === 'jefe')
+                        ) && (
+                          <span
+                            className="position-absolute top-0 end-0 m-2 badge rounded-pill bg-danger"
+                            style={{
+                              fontSize: "11px",
+                              padding: "7px 10px",
+                              zIndex: 2
+                            }}
+                          >
+                            {isMobile ? pendientes.length : `${pendientes.length} pendientes`}
+                          </span>
+                        )}
                       </div>
                       
                       <span className={`position-absolute bottom-0 end-0 m-3`}>
