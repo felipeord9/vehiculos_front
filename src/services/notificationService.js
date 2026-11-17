@@ -64,6 +64,27 @@ const findPendientesTodayByCo = async (co) => {
 }
 ////////
 
+//funciones para hallar los documentos por vencer
+const findVencimientosToday = async () => {
+  const token = JSON.parse(localStorage.getItem("token"))
+  const { data } = await axios.get(`${url2}/vencimientos/today`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  return data
+}
+const findVencimientosTodayByCo = async (co) => {
+  const token = JSON.parse(localStorage.getItem("token"))
+  const { data } = await axios.get(`${url2}/vencimientos/today/${co}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  return data
+}
+////////
+
 const findOneNotification = async (id) => {
   const token = JSON.parse(localStorage.getItem("token"))
   const { data } = await axios.get(`${url2}/${id}`, {
@@ -102,6 +123,8 @@ export {
   findOneNotification,
   findPendientesToday,
   findPendientesTodayByCo,
+  findVencimientosToday,
+  findVencimientosTodayByCo,
   updateNotification,
   agregarNombreNoti
 }

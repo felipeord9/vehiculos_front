@@ -99,6 +99,37 @@ export default function Navbar() {
     openModal(e, notificacionActualizada);
   };
 
+  const VencimientosVehiculo = (textoBD) => {
+    const partes = textoBD.split(',');
+
+    let diasSoat = 0;
+    let diasTecno = 0;
+
+    partes.forEach(parte => {
+      if (parte.includes('soat')) {
+        diasSoat = parseInt(parte.replace(/[^-\d]/g, ''), 10);
+      } else if (parte.includes('tecno')) {
+        diasTecno = parseInt(parte.replace(/[^-\d]/g, ''), 10);
+      }
+    });
+
+    const mensajes = [];
+
+    mensajes.push(
+      diasSoat > 0
+        ? `SOAT con vigencia de: ${diasSoat} días`
+        : `SOAT vencido hace: ${Math.abs(diasSoat)} días`
+    );
+
+    mensajes.push(
+      diasTecno > 0
+        ? `Tecnomecánica con vigencia de: ${diasTecno} días`
+        : `Tecnomecánica vencida hace: ${Math.abs(diasTecno)} días`
+    );
+
+    return mensajes.join(' - ');
+  };
+
   return (
     <>
     {isLogged &&
@@ -203,7 +234,7 @@ export default function Navbar() {
                       className="position-absolute top-0 start-50 translate-middle badge rounded-circle bg-primary border border-light d-flex align-items-center justify-content-center"
                       style={{ fontSize: '9px', width: '16px', height: '16px', padding: 0 }}
                     >
-                      {noLeidas}
+                      {noLeidas > 99 ? '+99' : noLeidas}
                     </span>
                   )}
                 </button>
@@ -250,7 +281,12 @@ export default function Navbar() {
                             } d-flex flex-column`}
                             style={{ fontSize: '11px', flex: 1 }}
                           >
-                            El vehículo: {notif.adjunto1}, no ha diligenciado el formulario pre-operacional del día: {new Date().toLocaleDateString()}
+                            {notif.concept === 'preoperacional' ?
+                              `El vehículo: ${notif.adjunto1}, no ha diligenciado el formulario pre-operacional del día: ${new Date().toLocaleDateString()}`
+                              :
+                              notif.concept === 'vencimiento' &&
+                                `El vehículo: ${notif.adjunto1}, ${VencimientosVehiculo(notif.adjunto3)}`
+                            }
                           </p>
                           {!String(notif.leidoPor || "")
                             .split(",")
@@ -270,20 +306,6 @@ export default function Navbar() {
                       </li>
                     ))
                   )}
-                  {/* <li 
-                    className="p-1 bg-primary text-light rounded-top-3 text-center fw-bold"
-                    onClick={(e)=>{
-                      e.stopPropagation();
-                      handleCompare(e)
-                    }}
-                  >
-                    <LuRefreshCcw className="me-1"/>
-                    {buscando ?
-                      'Cargando...'
-                      :
-                      'Refresh' 
-                    }
-                  </li> */}
                 </ul>
               </div>
             }

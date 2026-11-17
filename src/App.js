@@ -8,6 +8,15 @@ import Vehicles from './pages/Vehicles';
 import Drivers from './pages/Drivers';
 import Pesv from './pages/Pesv';
 import Gps from './pages/Gps';
+import Navbar from './components/Navbar';
+/* import Mantenimiento from './pages/Mantenimiento';
+import DetalleOrdenOperacion from './pages/DetalleOrdenOperacion'; */
+import PrivateRoute from "./components/PrivateRoute";
+import { AuthContextProvider } from './context/authContext';
+import { ClientContextProvider } from "./context/clientContext";
+import { NotificationProvider } from "./context/notificationContext";
+import { PreOpePendProvider } from "./context/preOpePendContext";
+import { VencimientoProvider } from "./context/vigenciaContext";
 
 import EditForm from './pages/editForm';
 import Users from "./pages/Users"
@@ -16,12 +25,6 @@ import SendRecoveryPassword from "./pages/SendRecoveryPassword"
 import RecoveryPassword from './pages/RecoveryPassword';
 import Plates from './pages/Plates';
 import Page404 from "./pages/Page404"
-import Navbar from './components/Navbar';
-import PrivateRoute from "./components/PrivateRoute";
-import { AuthContextProvider } from './context/authContext';
-import { ClientContextProvider } from "./context/clientContext";
-import { NotificationProvider } from "./context/notificationContext";
-import { PreOpePendProvider } from "./context/preOpePendContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -31,36 +34,40 @@ function App() {
       <ClientContextProvider>
         <NotificationProvider>
           <PreOpePendProvider>
-            <Router>
-              <Navbar />
-              <div id='wrapper' className="d-flex vh-100 overflow-auto p-0">
-                <Routes>
-                  <Route path='/' element={<Navigate to="/login" />} />
-                  <Route path='/login' element={<Login />} />
-                  <Route path='/home' element={<PrivateRoute component={Home} />} />
-                  <Route path='/administracion' element={<PrivateRoute component={Users} />} />
-                  <Route path='/admin/pre/operational' element={<PrivateRoute component={AdminPreoperation} />} />
-                  <Route path='/pre/operational' element={<PrivateRoute component={Preoperational} />} />
-                  <Route path='/pre/operational/:id' element={<PrivateRoute component={EditPreOperational} />} />
-                  <Route path='/vehicle' element={<PrivateRoute component={Vehicles} />} />
-                  <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
-                  <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
-                  <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
-                  <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
+            <VencimientoProvider>
+              <Router>
+                <Navbar />
+                <div id='wrapper' className="d-flex vh-100 overflow-auto p-0">
+                  <Routes>
+                    <Route path='/' element={<Navigate to="/login" />} />
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/home' element={<PrivateRoute component={Home} />} />
+                    <Route path='/administracion' element={<PrivateRoute component={Users} />} />
+                    <Route path='/admin/pre/operational' element={<PrivateRoute component={AdminPreoperation} />} />
+                    <Route path='/pre/operational' element={<PrivateRoute component={Preoperational} />} />
+                    <Route path='/pre/operational/:id' element={<PrivateRoute component={EditPreOperational} />} />
+                    <Route path='/vehicle' element={<PrivateRoute component={Vehicles} />} />
+                    <Route path='/vehicle/:id' element={<PrivateRoute component={Vehicles} />} />
+                    <Route path='/driver' element={<PrivateRoute component={Drivers} />} />
+                    <Route path='/driver/:id' element={<PrivateRoute component={Drivers} />} />
+                    <Route path='/pesv' element={<PrivateRoute component={Pesv} />} />
+                    {/* <Route path='/maintenance' element={<PrivateRoute component={Mantenimiento} />} />
+                    <Route path='/detalle/om/:id' element={<PrivateRoute component={DetalleOrdenOperacion} />} /> */}
 
-                  {/* sesiones sin completar */}
-                  <Route path='/gps' element={<PrivateRoute component={Gps} />} />
-                  <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
-                  <Route path='/educacion' element={<PrivateRoute component={Home} />} />
-                  <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
-        
-                  <Route path='/cambiar/contrasena' element={<PrivateRoute component={ChangePassword} />} />
-                  <Route path='/enviar/recuperacion' element={<SendRecoveryPassword/>} />
-                  <Route path='/recuperacion/contrasena/:token' element={<RecoveryPassword/>} />
-                  <Route path='*' element={<Page404 />} /> 
-                </Routes>
-              </div>
-            </Router>
+                    {/* sesiones sin completar */}
+                    <Route path='/gps' element={<PrivateRoute component={Gps} />} />
+                    <Route path='/mantenimiento' element={<PrivateRoute component={Home} />} />
+                    <Route path='/educacion' element={<PrivateRoute component={Home} />} />
+                    <Route path='/indicadores' element={<PrivateRoute component={Home} />} />
+          
+                    <Route path='/cambiar/contrasena' element={<PrivateRoute component={ChangePassword} />} />
+                    <Route path='/enviar/recuperacion' element={<SendRecoveryPassword/>} />
+                    <Route path='/recuperacion/contrasena/:token' element={<RecoveryPassword/>} />
+                    <Route path='*' element={<Page404 />} /> 
+                  </Routes>
+                </div>
+              </Router>
+            </VencimientoProvider>
           </PreOpePendProvider>
         </NotificationProvider>
       </ClientContextProvider>

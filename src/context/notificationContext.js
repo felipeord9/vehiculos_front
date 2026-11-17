@@ -55,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
       .split(",")
       .map(id => id.trim());
 
-    return !usuariosQueLeyeron.includes(String(user.id));
+    return !usuariosQueLeyeron.includes(String(user?.id));
   }).length;
 
   return (

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../../context/authContext";
 import { useNotifications } from "../../context/notificationContext";
 import { usePendientes } from "../../context/preOpePendContext";
+import { useVencimientos } from "../../context/vigenciaContext";
 import { MdPriceChange } from "react-icons/md";
 import { NavBarData } from "../../components/Navbar/NavbarData";
 import { findNotificationsToday, findNotificationsTodayByCo } from "../../services/notificationService";
@@ -33,6 +34,7 @@ export default function Home() {
   const navigate = useNavigate();
   const refTable = useRef();
   const [typeFillDate, setTypeFillDate] = useState('');
+  const [records, setRecords] = useState([]);
 
   const { notificaciones, setNotificaciones, noLeidas, loadingNotifications } = useNotifications();
   const {
@@ -42,6 +44,14 @@ export default function Home() {
     ready,
   } = usePendientes();
 
+  const {
+    vencimientos,
+    setVencimientos,
+    loadingVencimientos
+  } = useVencimientos();
+  
+  const [showModalNotify, setShowModalNotify] = useState(false);
+  
   useEffect(() => {
     const tamano = navItems.map((module, idx) => {
       if (module.access.includes(user.role)) {
@@ -73,6 +83,142 @@ export default function Home() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (vencimientos.length === 0) return;
+
+    const notificacionesHtml = vencimientos
+      .slice()
+      .sort((a, b) => b.id - a.id)
+      .map(vehicle => {
+
+        const alertaDocumento = (nombre, dias) => {
+          if (dias === null || dias === undefined) return '';
+
+          const vencido = dias < 0;
+          const venceHoy = dias === 0;
+
+          const mensaje = vencido
+            ? `Vencido hace ${Math.abs(dias)} días`
+            : venceHoy
+              ? 'Vence hoy'
+              : `Vence en ${dias} días`;
+
+          const color = vencido || venceHoy
+            ? '#dc2626'
+            : '#d97706';
+
+          return `
+            <p style="
+              margin: 5px 0;
+              font-size: 12px;
+              font-weight: 600;
+              color: ${color};
+            ">
+              ${nombre}: ${mensaje}
+            </p>
+          `;
+        };
+
+        return `
+          <div style="
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: left;
+            background: #fff7ed;
+          ">
+
+            <strong style="font-size: 13px;">
+              Placa: ${vehicle.adjunto1 || 'Sin placa'}
+            </strong>
+
+            <p style="
+              margin: 4px 0 8px;
+              font-size: 12px;
+              color: #666;
+            ">
+              C.O: ${vehicle.co || 'Sin C.O.'} -
+              Vehículo tipo: ${vehicle.adjunto2 || 'No especificado'}
+            </p>
+
+            <strong style="font-size: 13px;">
+              ${VencimientosVehiculo(vehicle.adjunto3)}
+            </strong>
+
+          </div>
+        `;
+      }).join('');
+
+    Swal.fire({
+      icon: 'warning',
+      title: '¡ATENCIÓN!',
+      html: `
+        <p style="font-size: 13px; color: #4b5563;">
+          Se encontraron ${vencimientos.length}
+          vehículo(s) con documentos próximos a vencer.
+        </p>
+
+        <div style="
+          max-height: 35vh;
+          overflow-y: auto;
+          padding: 4px;
+        ">
+          ${notificacionesHtml}
+        </div>
+      `,
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#dc2626',
+      width: '480px'
+    });
+
+  }, []);
+
+  const VencimientosVehiculo = (textoBD) => {
+    const partes = textoBD.split(',');
+
+    let diasSoat = 0;
+    let diasTecno = 0;
+
+    partes.forEach(parte => {
+      if (parte.includes('soat')) {
+        diasSoat = parseInt(parte.replace(/[^-\d]/g, ''), 10);
+      } else if (parte.includes('tecno')) {
+        diasTecno = parseInt(parte.replace(/[^-\d]/g, ''), 10);
+      }
+    });
+
+    const mensajeDocumento = (nombre, dias) => {
+      if (dias >= 8) {
+        return `
+          <span style="color: green; font-weight: 600;">
+            ${nombre} con vigencia de: ${dias} días
+          </span>
+        `;
+      }
+
+      if (dias > 0 && dias < 8) {
+        return `
+          <span style="color: #d97706; font-weight: 600;">
+            ${nombre} con vigencia de: ${dias} días
+          </span>
+        `;
+      }
+
+      return `
+        <span style="color: #dc2626; font-weight: 600;">
+          ${nombre} vencido hace: ${Math.abs(dias)} días
+        </span>
+      `;
+    };
+
+    return `
+      ${mensajeDocumento('SOAT', diasSoat)}
+      <br>
+      ${mensajeDocumento('Tecnomecánica', diasTecno)}
+    `;
+  };
 
   const handleChangeFilterDate = (e) => {
     const { id, value } = e.target;
