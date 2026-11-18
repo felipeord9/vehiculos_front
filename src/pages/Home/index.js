@@ -85,94 +85,93 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (vencimientos.length === 0) return;
-
-    const notificacionesHtml = vencimientos
-      .slice()
-      .sort((a, b) => b.id - a.id)
-      .map(vehicle => {
-
-        const alertaDocumento = (nombre, dias) => {
-          if (dias === null || dias === undefined) return '';
-
-          const vencido = dias < 0;
-          const venceHoy = dias === 0;
-
-          const mensaje = vencido
-            ? `Vencido hace ${Math.abs(dias)} días`
-            : venceHoy
-              ? 'Vence hoy'
-              : `Vence en ${dias} días`;
-
-          const color = vencido || venceHoy
-            ? '#dc2626'
-            : '#d97706';
-
+    if (vencimientos.length >= 1){
+      const notificacionesHtml = vencimientos
+        .slice()
+        .sort((a, b) => b.id - a.id)
+        .map(vehicle => {
+  
+          const alertaDocumento = (nombre, dias) => {
+            if (dias === null || dias === undefined) return '';
+  
+            const vencido = dias < 0;
+            const venceHoy = dias === 0;
+  
+            const mensaje = vencido
+              ? `Vencido hace ${Math.abs(dias)} días`
+              : venceHoy
+                ? 'Vence hoy'
+                : `Vence en ${dias} días`;
+  
+            const color = vencido || venceHoy
+              ? '#dc2626'
+              : '#d97706';
+  
+            return `
+              <p style="
+                margin: 5px 0;
+                font-size: 12px;
+                font-weight: 600;
+                color: ${color};
+              ">
+                ${nombre}: ${mensaje}
+              </p>
+            `;
+          };
+  
           return `
-            <p style="
-              margin: 5px 0;
-              font-size: 12px;
-              font-weight: 600;
-              color: ${color};
+            <div style="
+              padding: 12px;
+              margin-bottom: 8px;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              text-align: left;
+              background: #fff7ed;
             ">
-              ${nombre}: ${mensaje}
-            </p>
+  
+              <strong style="font-size: 13px;">
+                Placa: ${vehicle.adjunto1 || 'Sin placa'}
+              </strong>
+  
+              <p style="
+                margin: 4px 0 8px;
+                font-size: 12px;
+                color: #666;
+              ">
+                C.O: ${vehicle.co || 'Sin C.O.'} -
+                Vehículo tipo: ${vehicle.adjunto2 || 'No especificado'}
+              </p>
+  
+              <strong style="font-size: 13px;">
+                ${VencimientosVehiculo(vehicle.adjunto3)}
+              </strong>
+  
+            </div>
           `;
-        };
-
-        return `
+        }).join('');
+  
+      Swal.fire({
+        icon: 'warning',
+        title: '¡ATENCIÓN!',
+        html: `
+          <p style="font-size: 13px; color: #4b5563;">
+            Se encontraron ${vencimientos.length}
+            vehículo(s) con documentos próximos a vencer.
+          </p>
+  
           <div style="
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            text-align: left;
-            background: #fff7ed;
+            max-height: 35vh;
+            overflow-y: auto;
+            padding: 4px;
           ">
-
-            <strong style="font-size: 13px;">
-              Placa: ${vehicle.adjunto1 || 'Sin placa'}
-            </strong>
-
-            <p style="
-              margin: 4px 0 8px;
-              font-size: 12px;
-              color: #666;
-            ">
-              C.O: ${vehicle.co || 'Sin C.O.'} -
-              Vehículo tipo: ${vehicle.adjunto2 || 'No especificado'}
-            </p>
-
-            <strong style="font-size: 13px;">
-              ${VencimientosVehiculo(vehicle.adjunto3)}
-            </strong>
-
+            ${notificacionesHtml}
           </div>
-        `;
-      }).join('');
-
-    Swal.fire({
-      icon: 'warning',
-      title: '¡ATENCIÓN!',
-      html: `
-        <p style="font-size: 13px; color: #4b5563;">
-          Se encontraron ${vencimientos.length}
-          vehículo(s) con documentos próximos a vencer.
-        </p>
-
-        <div style="
-          max-height: 35vh;
-          overflow-y: auto;
-          padding: 4px;
-        ">
-          ${notificacionesHtml}
-        </div>
-      `,
-      confirmButtonText: 'Entendido',
-      confirmButtonColor: '#dc2626',
-      width: '480px'
-    });
-
+        `,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#dc2626',
+        width: '480px'
+      });
+    }
   }, []);
 
   const VencimientosVehiculo = (textoBD) => {

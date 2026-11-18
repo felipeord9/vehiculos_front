@@ -25,15 +25,42 @@ const getColombiaTime = () => {
     hourCycle: "h23"
   }).formatToParts(new Date());
 
-  const hour = Number(parts.find(p => p.type === "hour").value);
-  const minute = Number(parts.find(p => p.type === "minute").value);
+  const hour = Number(
+    parts.find(p => p.type === "hour").value
+  );
 
-  return { hour, minute };
+  const minute = Number(
+    parts.find(p => p.type === "minute").value
+  );
+
+  const second = Number(
+    parts.find(p => p.type === "second").value
+  );
+
+  return { hour, minute, second };
 };
 
-const isAfterNineAM = () => {
+// Verificar si ya son las 4 AM en Colombia
+const isAfterFourAM = () => {
   const { hour } = getColombiaTime();
-  return hour >= 9;
+  return hour >= 4;
+};
+
+// Calcular cuánto falta para las próximas 4 AM
+const getMillisecondsUntilFourAM = () => {
+  const { hour, minute, second } = getColombiaTime();
+
+  let milliseconds =
+    ((4 - hour + 24) % 24) * 60 * 60 * 1000 -
+    minute * 60 * 1000 -
+    second * 1000;
+
+  // Si ya pasaron las 4 AM, programar para mañana
+  if (milliseconds <= 0) {
+    milliseconds += 24 * 60 * 60 * 1000;
+  }
+
+  return milliseconds;
 };
 
 export const VencimientoProvider = ({ children }) => {
@@ -47,23 +74,22 @@ export const VencimientoProvider = ({ children }) => {
     if (!user) {
       setVencimientos([]);
       setReady(false);
+      setLoadingVencimientos(false);
       return;
     }
 
     let mounted = true;
+    let timeout = null;
+    let consultando = false;
 
+    // Consultar vencimientos según el rol
     const loadVencimientos = async () => {
-      // Antes de las 9 AM no consultar
-      if (!isAfterNineAM()) {
-        if (mounted) {
-          setVencimientos([]);
-          setReady(false);
-        }
-        return;
-      }
+      if (!mounted || consultando) return;
+
+      consultando = true;
 
       try {
-        if (mounted) setLoadingVencimientos(true);
+        setLoadingVencimientos(true);
 
         let pends = [];
 
@@ -82,24 +108,56 @@ export const VencimientoProvider = ({ children }) => {
         }
 
       } catch (error) {
-        console.error("Error cargando vencimientos:", error);
+        console.error(
+          "Error cargando vencimientos:",
+          error
+        );
+
+        if (mounted) {
+          setReady(true);
+        }
+
       } finally {
-        if (mounted) setLoadingVencimientos(false);
+        consultando = false;
+
+        if (mounted) {
+          setLoadingVencimientos(false);
+        }
       }
     };
 
-    // Primera consulta
-    loadVencimientos();
+    // Programar la siguiente consulta para las 4 AM
+    const programarConsulta = () => {
+      if (!mounted) return;
 
-    // Revisar cada minuto si ya son las 9 AM.
-    // Una vez habilitado, actualizar cada 5 minutos.
-    const interval = setInterval(() => {
+      const tiempo = getMillisecondsUntilFourAM();
+
+      timeout = setTimeout(async () => {
+        if (!mounted) return;
+
+        await loadVencimientos();
+
+        // Programar nuevamente para el día siguiente
+        programarConsulta();
+
+      }, tiempo);
+    };
+
+    // Si el usuario ingresa después de las 4 AM,
+    // consultar inmediatamente.
+    if (isAfterFourAM()) {
       loadVencimientos();
-    }, isAfterNineAM() ? 5 * 60 * 1000 : 60 * 1000);
+    }
+
+    // Programar la consulta diaria
+    programarConsulta();
 
     return () => {
       mounted = false;
-      clearInterval(interval);
+
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     };
 
   }, [user?.id, user?.role, user?.co]);
